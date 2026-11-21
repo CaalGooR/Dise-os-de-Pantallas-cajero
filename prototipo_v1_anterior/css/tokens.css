@@ -1,0 +1,43 @@
+/* ==========================================================================
+   MODO · Kiosco de Cambio de Divisas — Tokens de diseño
+   Los colores de marca se extrajeron de los archivos oficiales (Logos/).
+   Los valores son planos (hex) para poder mapearlos 1:1 a un ResourceDictionary de WPF.
+   ========================================================================== */
+
+@font-face {
+  font-family: "Nunito";
+  src: url("../assets/fonts/Nunito.ttf") format("truetype");
+  font-weight: 200 1000;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* --- Marca (NO modificar) --- */
+  --c-indigo: #332ba7;
+  --c-cyan: #04cdd8;
+  --c-white: #ffffff;
+
+  /* --- Derivados de marca --- */
+  --c-indigo-900: #1d1773;
+  --c-indigo-700: #2a2290;
+  --c-indigo-100: #e4e2f6;
+  --c-indigo-50: #f3f2fc;
+  --c-cyan-200: #b2f0f4;
+  --c-cyan-100: #dcf8fa;
+  --c-cyan-700: #0299a3;
+
+  /* --- Texto --- */
+  --c-ink: #231d70;
+  --c-muted: #6a66ac;
+
+  /* --- Semánticos --- */
+  --c-success: #0fa45a;
+  --c-success-700: #0a7c43;
+  --c-success-100: #dbf6e8;
+  --c-danger: #d3202a;
+  --c-danger-700: #9e131c;
+  --c-danger-100: #fde6e7;
+  --c-warning: #f5a623;
+  --c-warning-100: #fff1d6;
+}

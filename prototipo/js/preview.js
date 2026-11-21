@@ -1,7 +1,8 @@
 /* ==========================================================================
    Panel de revisión — NO forma parte del diseño del kiosco.
-   Permite cambiar de resolución, saltar entre pantallas y simular el hardware.
-   Parámetros URL:  ?res=landscape|portrait|free   ?kiosk  (oculta el panel y ocupa toda la ventana)
+   Cambia de resolución, salta entre pantallas, mueve el tipo de cambio en vivo
+   y simula el hardware (billetes, rechazos, escrow, fallas).
+   Parámetros URL:  ?res=landscape|portrait|free   ?kiosk  (oculta el panel)
    ========================================================================== */
 (function (global) {
   'use strict';
@@ -36,9 +37,10 @@
     }
     w = RES[mode].w; h = RES[mode].h;
     var vp = viewport.getBoundingClientRect();
-    var pad = pv.classList.contains('is-clean') ? 0 : 56;
+    var clean = pv.classList.contains('is-clean');
+    var pad = clean ? 0 : 56;
     scale = Math.min((vp.width - pad) / w, (vp.height - pad - 28) / h, 1);
-    if (pv.classList.contains('is-clean')) scale = Math.min(vp.width / w, vp.height / h);
+    if (clean) scale = Math.min(vp.width / w, vp.height / h);
     frame.style.width = Math.round(w * scale) + 'px';
     frame.style.height = Math.round(h * scale) + 'px';
     stage.style.width = w + 'px';
@@ -63,46 +65,51 @@
 
   /* ---------------------------------------------------------------- Pantallas */
   var OPTIONS = [
-    ['welcome', '1 · Bienvenida'],
-    ['privacy', '2 · Aviso de privacidad'],
-    ['amount', '3 · Monto en USD'],
-    ['bills', '4a · Insertar billetes (vacío)'],
-    ['bills-partial', '4b · Insertar billetes (parcial)'],
-    ['bills-ok', '4c · Insertar billetes (suficiente)'],
-    ['modal:validating', '4d · Validando inventario'],
-    ['confirm', '5 · Confirmar operación'],
-    ['delivering', '6 · Entregando'],
-    ['done', '7 · Transacción completada'],
-    ['modal:cancel', 'Extra · Cancelar operación'],
+    ['start', '1 · Inicio (tipo de cambio, idioma, privacidad)'],
+    ['insert-empty', '2a · Inserta tus dólares (vacío)'],
+    ['insert-partial', '2b · Inserta tus dólares (parcial)'],
+    ['insert-cap', '2c · Tope alcanzado (receptor bloqueado)'],
+    ['modal:validating', '2d · Validando inventario'],
+    ['confirm', '3 · Confirmación'],
+    ['deliver-run', '4a · Entrega en curso'],
+    ['deliver', '4b · Entrega completa (ticket)'],
+    ['incident', 'Extra · Incidencia (falla al entregar)'],
+    ['oos', 'Extra · Fuera de servicio'],
+    ['modal:cancel', 'Extra · Cancelar (con escrow)'],
     ['modal:returning', 'Extra · Devolviendo billetes'],
     ['modal:error', 'Extra · Error de inventario'],
     ['modal:idle', 'Extra · Inactividad'],
     ['notice:reject', 'Extra · Billete rechazado']
   ];
+  var SCREEN_TO_OPTION = { start: 'start', insert: 'insert-partial', confirm: 'confirm', deliver: 'deliver', incident: 'incident', oos: 'oos' };
+
   select.innerHTML = OPTIONS.map(function (o) { return '<option value="' + o[0] + '">' + o[1] + '</option>'; }).join('');
   select.addEventListener('change', function () { K.jump(select.value); select.blur(); });
-
-  K.onChange(function (s) {
-    if (s.modal || document.activeElement === select) return;
-    var v = s.screen;
-    if (Array.prototype.some.call(select.options, function (o) { return o.value === v; })) select.value = v;
-    updateBillButtons(s);
-  });
 
   /* ---------------------------------------------------------------- Idioma */
   document.getElementById('pvLang').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
-    K.setLang(b.dataset.lang);
+    K.setLang(b.dataset.lang || null);      // "" = bilingüe (ES + EN) hasta elegir bandera
     syncLang();
   });
   function syncLang() {
+    var cur = K.state.lang || '';
     Array.prototype.forEach.call(document.querySelectorAll('#pvLang button'), function (b) {
-      b.classList.toggle('is-active', b.dataset.lang === K.state.lang);
+      b.classList.toggle('is-active', b.dataset.lang === cur);
     });
   }
-  K.onChange(syncLang);
 
-  /* ---------------------------------------------------------------- Simulador de billetes */
+  /* ---------------------------------------------------------------- Tipo de cambio en vivo */
+  var rateVal = document.getElementById('pvRateVal');
+  function syncRate() { rateVal.textContent = K.CONFIG.rate.toFixed(2); }
+  function nudge(delta) {
+    K.setRate(Math.round((K.CONFIG.rate + delta) * 100) / 100);
+    syncRate();
+  }
+  document.getElementById('pvRateDown').addEventListener('click', function () { nudge(-0.05); });
+  document.getElementById('pvRateUp').addEventListener('click', function () { nudge(0.05); });
+
+  /* ---------------------------------------------------------------- Simulador de billetes y rechazos */
   var billsBox = document.getElementById('pvBills');
   billsBox.innerHTML = K.CONFIG.denominations.map(function (d) {
     return '<button type="button" class="pv-bill" data-denom="' + d + '">$' + d + '</button>';
@@ -110,20 +117,33 @@
   billsBox.addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (b) K.insertBill(Number(b.dataset.denom));
   });
-  document.getElementById('pvReject').addEventListener('click', function () { K.rejectBill(false); });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-reason]'), function (b) {
+    b.addEventListener('click', function () { K.rejectBill(b.dataset.reason); });
+  });
 
   function updateBillButtons(s) {
-    var on = s.screen === 'bills' && !s.modal;
-    Array.prototype.forEach.call(document.querySelectorAll('.pv-bill, #pvReject'), function (b) { b.disabled = !on; });
+    var on = s.screen === 'insert' && !s.modal;
+    Array.prototype.forEach.call(document.querySelectorAll('.pv-bill, [data-reason]'), function (b) { b.disabled = !on; });
   }
 
-  /* ---------------------------------------------------------------- Condiciones */
-  document.getElementById('pvFail').addEventListener('change', function (e) { K.CONFIG.failInventory = e.target.checked; });
-  document.getElementById('pvIdle').addEventListener('change', function (e) {
-    K.CONFIG.idleEnabled = e.target.checked;
-    K.resetIdle();
+  /* ---------------------------------------------------------------- Configuración */
+  function bindCheck(id, fn) {
+    document.getElementById(id).addEventListener('change', function (e) { fn(e.target.checked); });
+  }
+  bindCheck('pvFee', function (on) { K.CONFIG.feeFree = on; K.render(); });
+  bindCheck('pvDynCap', function (on) { K.CONFIG.dynamicCap = on; K.render(); });
+  bindCheck('pvEscrow', function (on) { K.CONFIG.escrow = on; K.render(); });
+  bindCheck('pvPriv', function (on) { K.CONFIG.privacyCheck = on; K.render(); });
+  bindCheck('pvOos', function (on) { K.setOutOfService(on); });
+
+  /* ---------------------------------------------------------------- Fallas y estados */
+  bindCheck('pvFail', function (on) { K.CONFIG.failInventory = on; });
+  bindCheck('pvFailDelivery', function (on) { K.CONFIG.failDelivery = on; });
+  bindCheck('pvIdle', function (on) { K.CONFIG.idleEnabled = on; K.resetIdle(); });
+  document.getElementById('pvReset').addEventListener('click', function () {
+    K.reset();
+    document.getElementById('pvOos').checked = false;
   });
-  document.getElementById('pvReset').addEventListener('click', function () { K.reset(); });
 
   /* ---------------------------------------------------------------- Mostrar / ocultar panel */
   function setClean(on) {
@@ -134,8 +154,19 @@
   document.getElementById('pvHide').addEventListener('click', function () { setClean(true); });
   document.getElementById('pvShow').addEventListener('click', function () { setClean(false); });
   document.addEventListener('keydown', function (e) {
-    if ((e.key === 'p' || e.key === 'P') && !e.target.closest('input, select, textarea') && K.state.screen !== 'amount') {
+    if ((e.key === 'p' || e.key === 'P') && !e.target.closest('input, select, textarea')) {
       setClean(!pv.classList.contains('is-clean'));
+    }
+  });
+
+  /* ---------------------------------------------------------------- Sincronización con el kiosco */
+  K.onChange(function (s) {
+    updateBillButtons(s);
+    syncLang();
+    syncRate();
+    if (!s.modal && document.activeElement !== select) {
+      var opt = SCREEN_TO_OPTION[s.screen];
+      if (opt) select.value = opt;
     }
   });
 
@@ -143,7 +174,8 @@
   if (params.has('kiosk')) { mode = params.get('res') || 'free'; setClean(true); }
   setMode(mode);
   syncLang();
+  syncRate();
   updateBillButtons(K.state);
-  select.value = K.state.screen;
+  select.value = 'start';
   requestAnimationFrame(fit);
 })(window);

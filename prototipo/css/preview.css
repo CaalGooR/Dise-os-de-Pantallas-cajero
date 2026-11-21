@@ -1,5 +1,5 @@
 /* Panel de revisión — herramienta de diseño, no forma parte del kiosco */
-html, body { margin: 0; height: 100%; background: #0d0a33; font-family: "Nunito", "Segoe UI", system-ui, sans-serif; }
+html, body { margin: 0; height: 100%; background: #0d0a33; font-family: "Inter", "Segoe UI", system-ui, sans-serif; }
 
 .pv { display: grid; grid-template-columns: 300px minmax(0, 1fr); height: 100vh; color: #e9e8ff; }
 .pv.is-clean { grid-template-columns: minmax(0, 1fr); }
@@ -37,6 +37,11 @@ html, body { margin: 0; height: 100%; background: #0d0a33; font-family: "Nunito"
 .pv-btn:disabled, .pv-bill:disabled { opacity: 0.3; cursor: not-allowed; }
 
 .pv-bills { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.pv-reasons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.pv-reasons .pv-btn { justify-content: center; padding: 9px 4px; font-size: 13px; }
+.pv-rate { display: grid; grid-template-columns: 1fr auto 1fr; gap: 6px; align-items: center; }
+.pv-rate output { font-family: "JetBrains Mono", monospace; font-size: 22px; font-weight: 800; text-align: center; color: #fff; min-width: 96px; }
+.pv-rate .pv-btn { justify-content: center; font-family: "JetBrains Mono", monospace; }
 .pv-bill { justify-content: center; padding: 10px 0; background: rgba(120, 220, 140, 0.14); border-color: rgba(120, 220, 140, 0.4); }
 
 .pv-panel select {

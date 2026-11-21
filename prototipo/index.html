@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>MODO · Kiosco de Cambio de Divisas — Prototipo</title>
+  <title>MODO · Kiosco de Cambio de Divisas — Prototipo v2</title>
   <link rel="icon" href="assets/img/modo-isotipo.png">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/kiosk.css">
@@ -48,16 +48,10 @@
 
   <g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
     <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
-    <symbol id="i-backspace" viewBox="0 0 24 24"><path d="M20 5H9l-7 7 7 7h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></symbol>
-    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></symbol>
-    <symbol id="i-camera" viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3.2"/></symbol>
-    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></symbol>
     <symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
     <symbol id="i-x-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></symbol>
-    <symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></symbol>
     <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol>
     <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
-    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5 5.5 5.5 0 0 1-5.5 5.5H11"/></symbol>
   </g>
 </svg>
 
@@ -67,7 +61,7 @@
   <aside class="pv-panel" id="pvPanel">
     <div class="pv-brand">
       <img src="assets/img/modo-isotipo.png" alt="">
-      <div><b>Kiosco MODO</b><span>Prototipo de diseño · v0.1</span></div>
+      <div><b>Kiosco MODO</b><span>Prototipo de diseño · v2</span></div>
     </div>
 
     <section>
@@ -87,20 +81,44 @@
     <section>
       <h4>Idioma</h4>
       <div class="pv-seg" id="pvLang">
+        <button type="button" data-lang="">Bilingüe</button>
         <button type="button" data-lang="es">Español</button>
         <button type="button" data-lang="en">English</button>
       </div>
     </section>
 
     <section>
-      <h4>Simulador de billetes <small>(solo paso 4)</small></h4>
-      <div class="pv-bills" id="pvBills"></div>
-      <button type="button" class="pv-btn" id="pvReject">Billete rechazado</button>
+      <h4>Tipo de cambio en vivo <small>(una sola fuente)</small></h4>
+      <div class="pv-rate">
+        <button type="button" class="pv-btn" id="pvRateDown">−0.05</button>
+        <output id="pvRateVal">18.38</output>
+        <button type="button" class="pv-btn" id="pvRateUp">+0.05</button>
+      </div>
     </section>
 
     <section>
-      <h4>Condiciones de prueba</h4>
+      <h4>Configuración</h4>
+      <label class="pv-check"><input type="checkbox" id="pvFee" checked> Mostrar “Sin comisión”</label>
+      <label class="pv-check"><input type="checkbox" id="pvDynCap"> Tope dinámico (300 USD)</label>
+      <label class="pv-check"><input type="checkbox" id="pvEscrow" checked> Receptor con escrow (cancelar)</label>
+      <label class="pv-check"><input type="checkbox" id="pvPriv"> Casilla extra de privacidad</label>
+      <label class="pv-check"><input type="checkbox" id="pvOos"> Kiosco fuera de servicio</label>
+    </section>
+
+    <section>
+      <h4>Simulador de billetes <small>(pantalla 2)</small></h4>
+      <div class="pv-bills" id="pvBills"></div>
+      <div class="pv-reasons">
+        <button type="button" class="pv-btn" data-reason="damaged">Dañado</button>
+        <button type="button" class="pv-btn" data-reason="serial">Serie</button>
+        <button type="button" class="pv-btn" data-reason="misplaced">Mal puesto</button>
+      </div>
+    </section>
+
+    <section>
+      <h4>Fallas y estados</h4>
       <label class="pv-check"><input type="checkbox" id="pvFail"> Error de inventario al validar</label>
+      <label class="pv-check"><input type="checkbox" id="pvFailDelivery"> Falla al entregar (incidencia)</label>
       <label class="pv-check"><input type="checkbox" id="pvIdle"> Inactividad / auto-reinicio</label>
     </section>
 
@@ -109,7 +127,7 @@
       <button type="button" class="pv-btn" id="pvHide">Ocultar panel</button>
     </section>
 
-    <p class="pv-help">En la pantalla de monto también puedes usar el teclado (dígitos, ⌫, Esc).<br>Tecla <kbd>P</kbd> muestra u oculta este panel.</p>
+    <p class="pv-help">Tecla <kbd>P</kbd> muestra u oculta este panel.</p>
   </aside>
 
   <main class="pv-viewport" id="pvViewport">
@@ -119,7 +137,7 @@
       <div class="stage" id="stage">
 
         <!-- ===================== KIOSCO ===================== -->
-        <div class="kiosk" id="kiosk" data-screen="welcome">
+        <div class="kiosk" id="kiosk" data-screen="start">
           <div class="bg" aria-hidden="true"></div>
 
           <header class="topbar">
@@ -131,7 +149,7 @@
           </header>
 
           <ol class="stepper" id="stepper" hidden>
-            <li class="step" data-step="1"><span class="step__dot"></span><span class="step__label" data-i18n="step.amount"></span></li>
+            <li class="step" data-step="1"><span class="step__dot"></span><span class="step__label" data-i18n="step.start"></span></li>
             <li class="step" data-step="2"><span class="step__dot"></span><span class="step__label" data-i18n="step.bills"></span></li>
             <li class="step" data-step="3"><span class="step__dot"></span><span class="step__label" data-i18n="step.confirm"></span></li>
             <li class="step" data-step="4"><span class="step__dot"></span><span class="step__label" data-i18n="step.delivery"></span></li>
@@ -139,177 +157,203 @@
 
           <div class="content">
 
-            <!-- ── 1 · Bienvenida ── -->
-            <section class="screen screen--welcome" data-id="welcome">
-              <p class="welcome__hello" data-i18n="welcome.hello"></p>
-              <img class="welcome__logo" src="assets/img/modo-logo.png" alt="MODO">
-              <h1 class="welcome__service" data-i18n="brand.service"></h1>
-              <button class="btn btn--cyan btn--xl" type="button" data-action="start"><span data-i18n="welcome.start"></span></button>
-              <div class="welcome__note">
-                <span class="route">
-                  <svg class="flag"><use href="#flag-us"/></svg>USD
-                  <svg class="icon"><use href="#i-arrow-right"/></svg>
-                  MXN<svg class="flag"><use href="#flag-mx"/></svg>
-                </span>
-                <p data-i18n="welcome.note"></p>
+            <!-- ── 1 · Inicio: espera + tipo de cambio + idioma + privacidad ── -->
+            <section class="screen screen--start" data-id="start">
+              <div class="hero">
+                <div class="hero__rate">
+                  <p class="hello" data-i18n="welcome.hello"></p>
+                  <p class="rate-lead" data-i18n="rate.lead"></p>
+                  <p class="rate-big"><span class="rate-big__sym">$</span><span class="num" data-bind="rate"></span></p>
+                  <p class="rate-unit" data-i18n="rate.unit"></p>
+                  <div class="pills">
+                    <span class="pill pill--ok" data-bind="fee" data-i18n="rate.noFee"></span>
+                    <span class="pill" data-bind="cap.note"></span>
+                  </div>
+                </div>
+                <div class="hero__table">
+                  <div class="tbl__head"><span>USD</span><span></span><span>MXN</span></div>
+                  <ul class="tbl" data-bind="table.rows"></ul>
+                </div>
+              </div>
+
+              <figure class="video">
+                <div class="video__stage" aria-hidden="true">
+                  <div class="acceptor acceptor--video">
+                    <div class="acceptor__bill"></div>
+                    <div class="acceptor__slot"></div>
+                  </div>
+                </div>
+                <figcaption class="video__cap">
+                  <span class="video__label" data-i18n="video.label"></span>
+                  <span class="video__caption" data-i18n="video.caption"></span>
+                </figcaption>
+                <span class="video__tag" data-i18n="video.placeholder"></span>
+              </figure>
+
+              <div class="privacy">
+                <img class="privacy__qr" src="assets/img/qr-privacidad.svg" alt="">
+                <div class="privacy__text">
+                  <p class="privacy__line" data-i18n="privacy.line"></p>
+                  <p class="privacy__more"><span data-i18n="privacy.qr"></span> <b>modo.exchange/privacy</b></p>
+                  <label class="privacy__check" data-bind="priv.check" hidden>
+                    <input type="checkbox" id="privacyCheck">
+                    <span data-i18n="privacy.check"></span>
+                  </label>
+                </div>
               </div>
             </section>
 
-            <!-- ── 2 · Aviso de privacidad ── -->
-            <section class="screen" data-id="privacy">
-              <article class="card">
-                <header class="card__header">
-                  <span class="card__icon"><svg class="icon"><use href="#i-shield"/></svg></span>
-                  <h2 class="card__title" data-i18n="privacy.title"></h2>
-                </header>
-                <div class="card__body privacy">
-                  <div class="privacy__badge"><svg class="icon"><use href="#i-camera"/></svg></div>
-                  <div class="privacy__text">
-                    <p data-i18n="privacy.p1"></p>
-                    <p data-i18n="privacy.p2"></p>
-                    <p class="privacy__strong" data-i18n="privacy.strong"></p>
-                    <p class="privacy__more"><span data-i18n="privacy.more"></span> <b>https://modo.exchange/privacy</b></p>
-                  </div>
+            <!-- ── 2 · Inserta tus dólares ── -->
+            <section class="screen screen--insert" data-id="insert">
+              <header class="ins__head">
+                <div>
+                  <h2 class="title" data-i18n="insert.title"></h2>
+                  <p class="sub" data-i18n="insert.sub"></p>
                 </div>
-              </article>
+                <div class="rate-pill">
+                  <span class="rate-pill__lbl" data-i18n="insert.rateLine"></span>
+                  <span class="num rate-pill__val" data-bind="ins.rate"></span>
+                  <span class="rate-pill__cur">MXN / USD</span>
+                </div>
+              </header>
+
+              <div class="figures">
+                <div class="fig">
+                  <span class="fig__lbl" data-i18n="insert.entered"></span>
+                  <span class="fig__val" data-bind="ins.entered"></span>
+                </div>
+                <span class="figures__arrow" aria-hidden="true"><svg class="icon"><use href="#i-arrow-right"/></svg></span>
+                <div class="fig fig--hero">
+                  <span class="fig__lbl" data-i18n="insert.receive"></span>
+                  <span class="fig__val" data-bind="ins.receive"></span>
+                </div>
+              </div>
+
+              <div class="cap">
+                <div class="cap__track"><span class="cap__fill" data-bind="ins.bar"></span></div>
+                <span class="cap__lbl" data-bind="ins.limit"></span>
+              </div>
+
+              <p class="banner" data-bind="ins.banner" hidden></p>
+
+              <div class="ins__body">
+                <div class="ins__clip">
+                  <div class="acceptor" aria-hidden="true">
+                    <div class="acceptor__bill"></div>
+                    <div class="acceptor__slot"></div>
+                  </div>
+                  <p class="ins__note" data-i18n="video.caption"></p>
+                </div>
+
+                <div class="bill-feed is-empty" data-bind="ins.feed">
+                  <div class="notice" data-bind="notice" hidden role="alert">
+                    <svg class="icon"><use href="#i-alert"/></svg>
+                    <span data-bind="notice.text"></span>
+                  </div>
+                  <div class="bill-empty"><p data-i18n="insert.empty"></p></div>
+                  <ul class="bill-list" data-bind="ins.list"></ul>
+                </div>
+              </div>
             </section>
 
-            <!-- ── 3 · Monto en USD ── -->
-            <section class="screen" data-id="amount">
-              <article class="card">
-                <header class="card__header"><h2 class="card__title" data-i18n="amount.title"></h2></header>
-                <div class="card__body amount">
-                  <div class="amount__summary">
-                    <div class="rate-chip"><span class="tag" data-i18n="rate.tag"></span><span>1 USD = <b data-bind="rate"></b> MXN</span></div>
-                    <div class="tile"><span class="tile__label" data-i18n="amount.entered"></span><span class="tile__value" data-bind="amount.usd"></span></div>
-                    <div class="tile tile--hero"><span class="tile__label" data-i18n="amount.receive"></span><span class="tile__value" data-bind="amount.mxn"></span></div>
-                    <p class="hint" data-bind="amount.hint"></p>
-                  </div>
-                  <div class="amount__entry">
-                    <div class="entry-display is-empty" data-bind="entry">
-                      <span class="entry-display__ph" data-i18n="amount.placeholder"></span>
-                      <span class="entry-display__value" data-bind="entry.value"></span>
-                      <span class="entry-display__cur">USD</span>
-                    </div>
-                    <div class="keypad" role="group">
-                      <button class="key" type="button" data-key="1">1</button>
-                      <button class="key" type="button" data-key="2">2</button>
-                      <button class="key" type="button" data-key="3">3</button>
-                      <button class="key" type="button" data-key="4">4</button>
-                      <button class="key" type="button" data-key="5">5</button>
-                      <button class="key" type="button" data-key="6">6</button>
-                      <button class="key" type="button" data-key="7">7</button>
-                      <button class="key" type="button" data-key="8">8</button>
-                      <button class="key" type="button" data-key="9">9</button>
-                      <button class="key key--fn" type="button" data-key="back" data-i18n-aria="key.back"><svg class="icon"><use href="#i-backspace"/></svg></button>
-                      <button class="key" type="button" data-key="0">0</button>
-                      <button class="key key--fn key--clear" type="button" data-key="clear" data-i18n-aria="key.clear"><svg class="icon"><use href="#i-trash"/></svg></button>
-                    </div>
-                  </div>
-                </div>
-              </article>
+            <!-- ── 3 · Confirmación ── -->
+            <section class="screen screen--confirm" data-id="confirm">
+              <h2 class="title title--center" data-i18n="confirm.title"></h2>
+
+              <div class="cf__usd">
+                <span class="cf__lbl" data-i18n="confirm.inserted"></span>
+                <span class="cf__val" data-bind="cf.usd"></span>
+              </div>
+
+              <div class="cf__hero">
+                <span class="fig__lbl" data-i18n="confirm.receive"></span>
+                <span class="fig__val" data-bind="cf.mxn"></span>
+              </div>
+
+              <div class="rate-pill rate-pill--center">
+                <span class="rate-pill__lbl" data-i18n="confirm.rate"></span>
+                <span class="num rate-pill__val" data-bind="cf.rate"></span>
+                <span class="rate-pill__cur">MXN / USD</span>
+              </div>
+
+              <div class="cf__foot">
+                <p class="cf__detail" data-bind="cf.billsDetail"></p>
+                <button class="link-btn" type="button" data-action="toggle-prefer" data-bind="cf.pref"></button>
+              </div>
             </section>
 
-            <!-- ── 4 · Insertar billetes ── -->
-            <section class="screen" data-id="bills">
-              <article class="card">
-                <header class="card__header"><h2 class="card__title" data-i18n="bills.title"></h2></header>
-                <div class="card__body bills">
-                  <div class="stats">
-                    <div class="tile tile--target" data-bind="target.tile">
-                      <span class="tile__label" data-i18n="bills.target"></span>
-                      <span class="tile__value" data-bind="bills.target"></span>
-                      <span class="tile__ok" data-i18n="bills.enough"></span>
-                    </div>
-                    <div class="tile tile--inserted" data-bind="inserted.tile">
-                      <span class="tile__label" data-i18n="bills.inserted"></span>
-                      <span class="tile__value" data-bind="bills.inserted"></span>
-                    </div>
-                  </div>
+            <!-- ── 4 · Entrega: billetes → monedas → ticket ── -->
+            <section class="screen screen--deliver" data-id="deliver">
+              <header class="dv__head">
+                <span class="spinner" data-bind="dv.spin"></span>
+                <span class="dv__ok" data-bind="dv.ok" hidden><svg class="icon"><use href="#i-check"/></svg></span>
+                <h2 class="title" data-bind="dv.title"></h2>
+              </header>
 
-                  <div class="bill-feed is-empty" data-bind="feed">
-                    <div class="notice" data-bind="notice" hidden role="alert">
-                      <svg class="icon"><use href="#i-alert"/></svg>
-                      <span data-bind="notice.text"></span>
-                    </div>
-                    <div class="bill-empty">
-                      <div class="acceptor" aria-hidden="true"><div class="acceptor__bill"></div><div class="acceptor__slot"></div></div>
-                      <p class="bill-empty__title" data-i18n="bills.empty"></p>
-                      <p class="bill-empty__sub" data-i18n="bills.emptySub"></p>
-                    </div>
-                    <ul class="bill-list" data-bind="bill.list"></ul>
+              <ol class="dv__steps">
+                <li class="dv__step" data-phase="0">
+                  <span class="dv__dot"></span>
+                  <div class="dv__txt">
+                    <b data-i18n="deliver.bills"></b>
+                    <small class="num" data-bind="dv.billsDetail"></small>
                   </div>
+                </li>
+                <li class="dv__step" data-phase="1">
+                  <span class="dv__dot"></span>
+                  <div class="dv__txt">
+                    <b data-i18n="deliver.coins"></b>
+                    <small class="num" data-bind="dv.coinsDetail"></small>
+                  </div>
+                </li>
+                <li class="dv__step" data-phase="2">
+                  <span class="dv__dot"></span>
+                  <div class="dv__txt">
+                    <b data-i18n="deliver.ticket"></b>
+                    <small data-bind="dv.printing" data-i18n="deliver.printing"></small>
+                  </div>
+                </li>
+              </ol>
 
-                  <div class="receive-bar"><span data-i18n="bills.receive"></span><strong data-bind="bills.mxn"></strong></div>
-                </div>
-              </article>
+              <div class="receipt" data-bind="dv.receipt" hidden>
+                <div class="receipt__row"><span data-i18n="receipt.folio"></span><b class="num" data-bind="dv.folio"></b></div>
+                <div class="receipt__row"><span data-i18n="receipt.date"></span><b class="num" data-bind="dv.date"></b></div>
+                <div class="receipt__row"><span data-i18n="receipt.usd"></span><span class="num" data-bind="dv.usd"></span></div>
+                <div class="receipt__row"><span data-i18n="receipt.rate"></span><span class="num" data-bind="dv.rate"></span></div>
+                <div class="receipt__total"><span data-i18n="deliver.delivered"></span><span class="num" data-bind="dv.mxn"></span></div>
+              </div>
+
+              <p class="dv__count" data-bind="dv.count" hidden></p>
             </section>
 
-            <!-- ── 5 · Confirmación ── -->
-            <section class="screen" data-id="confirm">
-              <article class="card">
-                <header class="card__header"><h2 class="card__title" data-i18n="confirm.title"></h2></header>
-                <div class="card__body">
-                  <div class="rate-chip"><span class="tag" data-i18n="rate.tag"></span><span>1 USD = <b data-bind="rate"></b> MXN</span></div>
-                  <div class="summary-grid">
-                    <div class="tile"><span class="tile__label" data-i18n="confirm.amount"></span><span class="tile__value" data-bind="confirm.amount"></span></div>
-                    <div class="tile"><span class="tile__label" data-i18n="confirm.inserted"></span><span class="tile__value" data-bind="confirm.inserted"></span></div>
-                    <div class="tile tile--hero"><span class="tile__label" data-i18n="confirm.receive"></span><span class="tile__value" data-bind="confirm.mxn"></span></div>
-                  </div>
-                </div>
-              </article>
+            <!-- ── Incidencia (improvisada): falla después de recibir el dinero ── -->
+            <section class="screen screen--incident" data-id="incident">
+              <div class="state-icon state-icon--danger"><svg class="icon"><use href="#i-alert"/></svg></div>
+              <h2 class="title title--center" data-i18n="incident.title"></h2>
+              <p class="lead" data-i18n="incident.text"></p>
+              <div class="receipt">
+                <div class="receipt__row"><span data-i18n="incident.folio"></span><b class="num" data-bind="inc.folio"></b></div>
+                <div class="receipt__row"><span data-i18n="receipt.date"></span><b class="num" data-bind="inc.date"></b></div>
+                <div class="receipt__row"><span data-i18n="receipt.usd"></span><span class="num" data-bind="inc.usd"></span></div>
+                <div class="receipt__row"><span data-i18n="incident.phone"></span><b class="num" data-i18n="incident.phoneValue"></b></div>
+              </div>
             </section>
 
-            <!-- ── 6 · Entregando ── -->
-            <section class="screen" data-id="delivering">
-              <article class="card">
-                <header class="card__header">
-                  <span class="spinner spinner--sm"></span>
-                  <h2 class="card__title" data-i18n="delivering.title"></h2>
-                </header>
-                <div class="card__body">
-                  <div class="deliver">
-                    <div class="dispenser" aria-hidden="true">
-                      <div class="dispenser__slot"></div>
-                      <div class="dispenser__bill"></div><div class="dispenser__bill"></div><div class="dispenser__bill"></div>
-                    </div>
-                    <p class="deliver__text" data-i18n="delivering.text"></p>
-                    <div class="tile tile--hero"><span class="tile__label" data-i18n="confirm.receive"></span><span class="tile__value" data-bind="deliver.mxn"></span></div>
-                    <p class="deliver__sub" data-i18n="delivering.sub"></p>
-                  </div>
-                </div>
-              </article>
-            </section>
-
-            <!-- ── 7 · Transacción completada ── -->
-            <section class="screen" data-id="done">
-              <article class="card">
-                <header class="card__header">
-                  <span class="card__icon card__icon--ok"><svg class="icon" style="stroke-width:3.2"><use href="#i-check"/></svg></span>
-                  <h2 class="card__title" data-i18n="done.title"></h2>
-                </header>
-                <div class="card__body">
-                  <div class="rate-chip"><span class="tag" data-i18n="rate.tag"></span><span>1 USD = <b data-bind="rate"></b> MXN</span></div>
-                  <div class="summary-grid">
-                    <div class="tile"><span class="tile__label" data-i18n="done.amount"></span><span class="tile__value" data-bind="done.amount"></span></div>
-                    <div class="tile"><span class="tile__label" data-i18n="done.received"></span><span class="tile__value" data-bind="done.inserted"></span></div>
-                    <div class="tile tile--hero"><span class="tile__label" data-i18n="done.delivered"></span><span class="tile__value" data-bind="done.mxn"></span></div>
-                  </div>
-                  <div class="take"><svg class="icon"><use href="#i-arrow-down"/></svg><span data-i18n="done.take"></span></div>
-                </div>
-                <footer class="card__footer">
-                  <span><span data-i18n="done.folio"></span><b data-bind="done.folio"></b></span>
-                  <span><span data-i18n="done.date"></span><b data-bind="done.date"></b></span>
-                  <span data-bind="done.countdown" hidden></span>
-                </footer>
-              </article>
+            <!-- ── Fuera de servicio (improvisada) ── -->
+            <section class="screen screen--oos" data-id="oos">
+              <div class="state-icon state-icon--warn"><svg class="icon"><use href="#i-x-circle"/></svg></div>
+              <h2 class="title title--center" data-i18n="oos.title"></h2>
+              <p class="lead" data-i18n="oos.text"></p>
             </section>
 
           </div>
 
           <footer class="actions" id="actions">
-            <button class="btn" id="btnSecondary" type="button"><svg class="flag btn__flag" hidden><use href="#flag-us"/></svg><span class="btn__label"></span></button>
-            <button class="btn" id="btnPrimary" type="button"><svg class="flag btn__flag" hidden><use href="#flag-us"/></svg><span class="btn__label"></span></button>
+            <div class="langs" id="langGroup" role="group" aria-label="Idioma">
+              <button class="lang" type="button" data-lang="es"><svg class="flag"><use href="#flag-mx"/></svg><span>Español</span></button>
+              <button class="lang" type="button" data-lang="en"><svg class="flag"><use href="#flag-us"/></svg><span>English</span></button>
+            </div>
+            <button class="btn" id="btnSecondary" type="button"><span class="btn__label"></span></button>
+            <button class="btn" id="btnPrimary" type="button"><span class="btn__label"></span></button>
           </footer>
 
           <!-- ── Modales ── -->
@@ -324,10 +368,10 @@
             <div class="modal" data-modal-id="cancel" role="alertdialog">
               <div class="modal__icon modal__icon--warn"><svg class="icon"><use href="#i-alert"/></svg></div>
               <h3 class="modal__title" data-i18n="cancel.title"></h3>
-              <p class="modal__text" data-bind="cancel.text"></p>
+              <p class="modal__text" data-i18n="cancel.text"></p>
               <div class="modal__actions">
-                <button class="btn btn--light btn--modal" type="button" data-action="cancel-keep"><span data-i18n="cancel.keep"></span></button>
-                <button class="btn btn--danger btn--modal" type="button" data-action="cancel-yes"><span data-i18n="cancel.yes"></span></button>
+                <button class="btn btn--light btn--modal" type="button" data-action="cancel-keep"><span class="btn__label" data-i18n="cancel.keep"></span></button>
+                <button class="btn btn--danger btn--modal" type="button" data-action="cancel-yes"><span class="btn__label" data-i18n="cancel.yes"></span></button>
               </div>
             </div>
 
@@ -340,9 +384,9 @@
             <div class="modal" data-modal-id="error" role="alertdialog">
               <div class="modal__icon modal__icon--danger"><svg class="icon"><use href="#i-x-circle"/></svg></div>
               <h3 class="modal__title" data-i18n="error.title"></h3>
-              <p class="modal__text" data-i18n="error.text"></p>
+              <p class="modal__text" data-bind="error.text"></p>
               <div class="modal__actions">
-                <button class="btn btn--cyan btn--modal" type="button" data-action="error-ok"><span data-i18n="error.ok"></span></button>
+                <button class="btn btn--cyan btn--modal" type="button" data-action="error-ok"><span class="btn__label" data-i18n="error.ok"></span></button>
               </div>
             </div>
 
@@ -351,7 +395,7 @@
               <h3 class="modal__title" data-i18n="idle.title"></h3>
               <p class="modal__text" data-bind="idle.text"></p>
               <div class="modal__actions">
-                <button class="btn btn--cyan btn--modal" type="button" data-action="idle-ok"><span data-i18n="idle.ok"></span></button>
+                <button class="btn btn--cyan btn--modal" type="button" data-action="idle-ok"><span class="btn__label" data-i18n="idle.ok"></span></button>
               </div>
             </div>
 

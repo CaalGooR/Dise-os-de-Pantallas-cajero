@@ -1,8 +1,23 @@
 /* ==========================================================================
-   MODO · Kiosco de Cambio de Divisas — Tokens de diseño
-   Los colores de marca se extrajeron de los archivos oficiales (Logos/).
-   Los valores son planos (hex) para poder mapearlos 1:1 a un ResourceDictionary de WPF.
+   MODO · Kiosco de Cambio de Divisas — Tokens de diseño (v2)
+   --------------------------------------------------------------------------
+   Tipografía:
+     • Inter ............ texto de interfaz (jerarquía con pesos)
+     • JetBrains Mono ... TODOS los números y montos (ancho fijo, dígitos
+                          legibles: 0/8, 1/7, 3/8; no "bailan" al actualizarse)
+     • Nunito ........... solo momentos de marca (logo, bienvenida)
+   Los valores de color son planos (hex) para mapear 1:1 a un ResourceDictionary de WPF.
    ========================================================================== */
+
+@font-face { font-family: "Inter"; src: url("../assets/fonts/inter-latin-400-normal.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Inter"; src: url("../assets/fonts/inter-latin-500-normal.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "Inter"; src: url("../assets/fonts/inter-latin-600-normal.woff2") format("woff2"); font-weight: 600; font-display: swap; }
+@font-face { font-family: "Inter"; src: url("../assets/fonts/inter-latin-700-normal.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "Inter"; src: url("../assets/fonts/inter-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+
+@font-face { font-family: "JetBrains Mono"; src: url("../assets/fonts/jetbrains-mono-latin-500-normal.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "JetBrains Mono"; src: url("../assets/fonts/jetbrains-mono-latin-700-normal.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "JetBrains Mono"; src: url("../assets/fonts/jetbrains-mono-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
 
 @font-face {
   font-family: "Nunito";
@@ -20,6 +35,7 @@
 
   /* --- Derivados de marca --- */
   --c-indigo-900: #1d1773;
+  --c-indigo-800: #251d86;
   --c-indigo-700: #2a2290;
   --c-indigo-100: #e4e2f6;
   --c-indigo-50: #f3f2fc;
@@ -30,6 +46,12 @@
   /* --- Texto --- */
   --c-ink: #231d70;
   --c-muted: #6a66ac;
+
+  /* --- Sobre fondo índigo (superficies translúcidas, líneas finas) --- */
+  --c-glass: rgba(255, 255, 255, 0.07);
+  --c-glass-strong: rgba(255, 255, 255, 0.12);
+  --c-line: rgba(255, 255, 255, 0.16);
+  --c-text-soft: rgba(255, 255, 255, 0.72);
 
   /* --- Semánticos --- */
   --c-success: #0fa45a;

@@ -1,36 +1,51 @@
 /* ==========================================================================
-   MODO · Kiosco de Cambio de Divisas — Lógica del prototipo
+   MODO · Kiosco de Cambio de Divisas — Lógica del prototipo (v2)
    --------------------------------------------------------------------------
-   Simula el flujo completo:
-     welcome → privacy → amount → bills → (validando) → confirm → delivering → done
-   Más estados "improvisados": cancelar, devolver billetes, error de inventario,
-   billete rechazado, límite de monto e inactividad.
+   Flujo de 4 pantallas (según "Observaciones de la prueba", 14-nov-2026):
+     1 · start    Inicio: tipo de cambio, tabla, video, idioma y privacidad
+     2 · insert   Inserta tus dólares (contador en vivo, tope, rechazos)
+     3 · confirm  Confirmación (tipo de cambio fijado; Cancelar solo con escrow)
+     4 · deliver  Entrega: billetes → monedas → ticket
+   Estados adicionales: fuera de servicio, incidencia, inventario, inactividad.
 
-   Supuestos a validar con negocio (marcados con [SUPUESTO]):
-     • El efectivo entregado se redondea hacia abajo a pesos enteros.
-       (En las referencias: 5 USD × 18.38 = 91.90 → se entrega 91.00).
-     • El kiosco compra TODO lo insertado (no devuelve USD sobrantes).
-     • Límite por operación: 1 a 1,000 USD.
+   [SUPUESTO] marcados en el código; ver resumen para confirmar con negocio.
    ========================================================================== */
 (function (global) {
   'use strict';
 
-  /* ------------------------------------------------------------------ Config */
+  /* ------------------------------------------------------------------ Configuración
+     Una sola fuente: el tipo de cambio vive en CONFIG.rate y todas las pantallas
+     lo leen desde aquí (letrero, inicio, tabla, contador, confirmación, ticket). */
   var CONFIG = {
-    rate: 18.38,                 // MXN por 1 USD (compra)
-    minUSD: 1,
-    maxUSD: 1000,                // [SUPUESTO]
-    denominations: [1, 2, 5, 10, 20, 50, 100],
+    rate: 18.38,                 // MXN por 1 USD (compra) — tipo de cambio en vivo
+    feeFree: true,               // "Sin comisión" visible en inicio
+    capUSD: 800,                 // tope fijo por operación (documento)
+    dynamicCap: false,           // tope dinámico (inventario bajo)
+    dynamicCapUSD: 300,
+    denominations: [1, 2, 5, 10, 20, 50, 100],   // billetes USD aceptados
+    escrow: true,                // [SUPUESTO] receptor con escrow (pendiente de hardware)
+    privacyCheck: false,         // casilla adicional de privacidad (pendiente de Legal)
+    outOfService: false,
+    failInventory: false,        // simula error de inventario al validar
+    failDelivery: false,         // simula falla después de recibir el dinero
+    idleEnabled: false,          // activar desde el panel
     validatingMs: 2400,
-    deliveringMs: 4800,
+    billsMs: 2200,               // entrega: billetes
+    coinsMs: 1800,               // entrega: monedas
+    ticketMs: 1600,              // entrega: ticket
     returningMs: 2600,
     idleMs: 90000,
     idleCountdownS: 15,
-    doneCountdownS: 30,
-    idleEnabled: false,          // activar desde el panel (molesta al revisar diseño)
-    failInventory: false         // simula error de inventario al validar
+    doneCountdownS: 30
   };
-  var RATE_CENTS = Math.round(CONFIG.rate * 100);
+
+  var PREVIEW_AMOUNTS = [20, 100, 500, 800];   // tabla de equivalencias (documento)
+  var USD_BILL_LABEL = function (d) { return '$' + d; };
+
+  // Centavos MXN. Billetes de 500/200/100/50/20 y monedas de 10/5/2/1 pesos y 50/20/10/5 centavos.
+  var BILLS_500 = [50000, 20000, 10000, 5000, 2000];
+  var BILLS_200 = [20000, 10000, 5000, 2000];
+  var COINS = [1000, 500, 200, 100, 50, 20, 10, 5];
 
   /* ------------------------------------------------------------------ DOM */
   var kiosk = document.getElementById('kiosk');
@@ -40,59 +55,99 @@
 
   /* ------------------------------------------------------------------ Estado */
   var state = {
-    screen: 'welcome',
-    lang: 'es',
-    amount: '',          // dígitos tecleados (string)
-    bills: {},           // { denominacion: cantidad }
+    screen: 'start',
+    lang: null,                  // null = bilingüe (ES + EN) hasta elegir bandera
+    privacyOk: false,
+    bills: {},                   // { denominación USD: cantidad }
     lastBill: null,
-    notice: null,        // { key, params }
+    notice: null,                // { key, params }
+    deal: null,                  // { usd, rate } fijado al entrar a Confirmación
+    use200: false,               // desglose opcional: billetes de $200 en vez de $500
+    phase: 0,                    // entrega: 0 billetes · 1 monedas · 2 ticket · 3 listo
+    receipt: null,               // { folio, stamp, usd, rate, cents }
+    incident: null,              // { folio, stamp, usd, reason }
     modal: null,
-    holdModal: false,    // modal "fijo" (para revisión de diseño)
-    hintError: false,
-    folio: null,
-    stamp: null
+    holdModal: false
   };
 
   var listeners = [];
   function emit() { listeners.forEach(function (fn) { fn(state); }); }
 
-  /* ------------------------------------------------------------------ i18n */
-  function t(key, params) {
-    var dict = global.I18N[state.lang] || global.I18N.es;
-    var s = dict[key] != null ? dict[key] : key;
-    return s.replace(/\{(\w+)\}/g, function (m, k) { return params && params[k] != null ? params[k] : m; });
-  }
-  function applyI18n() {
-    $$('[data-i18n]').forEach(function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
-    $$('[data-i18n-aria]').forEach(function (el) { el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria'))); });
-  }
-
-  /* ------------------------------------------------------------------ Formato / cálculo */
+  /* ------------------------------------------------------------------ Utilidades */
   var nf2 = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   var nf0 = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
-
-  function money(n, cur, approx) {
-    return (approx ? '<span class="approx">\u2248</span>' : '') +
-      '<span class="amt">$' + nf2.format(n) + '</span><span class="cur">' + cur + '</span>';
+  function pad(n, w) { return String(n).padStart(w || 2, '0'); }
+  function randDigits(n) { var s = ''; while (s.length < n) s += Math.floor(Math.random() * 10); return s; }
+  function nowStamp() {
+    var d = new Date();
+    return pad(d.getDate()) + '-' + pad(d.getMonth() + 1) + '-' + d.getFullYear() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
   }
-  function moneyText(n, cur) { return '$' + nf2.format(n) + ' ' + cur; }
 
-  function amountUSD() { return parseInt(state.amount || '0', 10); }
+  /* Tipo de cambio y tope (fuente única) */
+  function rateCents() { return Math.round(CONFIG.rate * 100); }
+  function capUSD() { return CONFIG.dynamicCap ? CONFIG.dynamicCapUSD : CONFIG.capUSD; }
   function insertedUSD() {
     return Object.keys(state.bills).reduce(function (s, d) { return s + Number(d) * state.bills[d]; }, 0);
   }
-  function mxnFor(usd) { return Math.floor(usd * RATE_CENTS / 100); }   // [SUPUESTO] redondeo hacia abajo
-  function isEnough() { return amountUSD() > 0 && insertedUSD() >= amountUSD(); }
+  function isLocked() { return insertedUSD() >= capUSD(); }
+
+  /* [SUPUESTO] Centavos: no hay monedas de 1 ni 2 centavos, así que el monto en MXN
+     se redondea hacia abajo a múltiplos de 5 centavos (a favor del kiosco). */
+  function mxnCents(usd, rc) { return Math.floor(usd * rc / 5) * 5; }
+
+  /* Desglose de entrega (billetes y monedas) con algoritmo voraz */
+  function breakdown(cents, use200) {
+    var out = { bills: [], coins: [] }, rem = cents;
+    (use200 ? BILLS_200 : BILLS_500).forEach(function (d) {
+      var n = Math.floor(rem / d);
+      if (n) { out.bills.push({ d: d, n: n }); rem -= n * d; }
+    });
+    COINS.forEach(function (d) {
+      var n = Math.floor(rem / d);
+      if (n) { out.coins.push({ d: d, n: n }); rem -= n * d; }
+    });
+    return out;
+  }
+  function piecesText(list, coins) {
+    return list.map(function (p) {
+      var v = coins ? nf2.format(p.d / 100) : nf0.format(p.d / 100);
+      return p.n + ' \u00d7 $' + v;
+    }).join(' \u00b7 ');
+  }
+
+  /* Formato de montos: "$" + número mono + moneda */
+  function money(cents, cur) {
+    return '<span class="money"><span class="money__sym">$</span><span class="num">' + nf2.format(cents / 100) + '</span>' +
+      (cur ? '<span class="money__cur">' + cur + '</span>' : '') + '</span>';
+  }
+
+  /* ------------------------------------------------------------------ i18n */
+  function tIn(lang, key, params) {
+    var dict = global.I18N[lang] || global.I18N.es;
+    var s = dict[key] != null ? dict[key] : key;
+    return s.replace(/\{(\w+)\}/g, function (m, k) { return params && params[k] != null ? params[k] : m; });
+  }
+  function t(key, params) { return tIn(state.lang || 'es', key, params); }
+  // Sin idioma elegido (pantalla de inicio): ES y EN a la vez
+  function tHTML(key, params) {
+    if (state.lang) return t(key, params);
+    return '<span class="bi bi--es">' + tIn('es', key, params) + '</span><span class="bi bi--en">' + tIn('en', key, params) + '</span>';
+  }
+  function applyI18n() {
+    $$('[data-i18n]').forEach(function (el) { el.innerHTML = tHTML(el.getAttribute('data-i18n')); });
+    $$('[data-i18n-aria]').forEach(function (el) { el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria'))); });
+    kiosk.classList.toggle('is-bilingual', !state.lang);
+  }
 
   /* ------------------------------------------------------------------ Bind */
   function bindHTML(name, html) { $$('[data-bind="' + name + '"]').forEach(function (el) { el.innerHTML = html; }); }
   function bindText(name, text) { $$('[data-bind="' + name + '"]').forEach(function (el) { el.textContent = text; }); }
+  function bindHidden(name, hidden) { $$('[data-bind="' + name + '"]').forEach(function (el) { el.hidden = hidden; }); }
 
   /* ------------------------------------------------------------------ Timers */
   var flowTimers = [];
   var idleTimer = null, idleTick = null, doneTick = null;
-
-  function later(fn, ms) { var id = setTimeout(fn, ms); flowTimers.push(id); return id; }
+  function later(fn, ms) { flowTimers.push(setTimeout(fn, ms)); }
   function clearFlowTimers() {
     flowTimers.forEach(clearTimeout); flowTimers = [];
     clearInterval(doneTick); doneTick = null;
@@ -101,83 +156,176 @@
   /* ------------------------------------------------------------------ Reloj */
   function tick() {
     var now = new Date();
-    var loc = state.lang === 'es' ? 'es-MX' : 'en-US';
+    var loc = state.lang === 'en' ? 'en-US' : 'es-MX';
     $('#clockDate').textContent = new Intl.DateTimeFormat(loc, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(now);
     $('#clockTime').textContent = now.toLocaleTimeString('en-GB');
   }
 
-  /* ------------------------------------------------------------------ Definición de pantallas */
+  /* ------------------------------------------------------------------ Idioma */
   function setLang(lang) {
     state.lang = lang;
-    document.documentElement.lang = lang;
+    document.documentElement.lang = lang || 'es';
     applyI18n();
     tick();
     render();
   }
 
+  /* ------------------------------------------------------------------ Sesión */
+  function resetSession() {
+    state.bills = {}; state.lastBill = null; state.notice = null;
+    state.deal = null; state.phase = 0; state.receipt = null; state.incident = null;
+  }
+
+  /* ------------------------------------------------------------------ Acciones de pantalla */
+  function startSession() {
+    if (CONFIG.privacyCheck && !state.privacyOk) return;
+    if (!state.lang) setLang('es');
+    go('insert');
+  }
+  function togglePrefer() { state.use200 = !state.use200; render(); }
+
+  function validate() {
+    if (insertedUSD() <= 0) return;
+    openModal('validating');
+    later(function () {
+      if (CONFIG.failInventory) openError();
+      else { closeModal(); go('confirm'); }
+    }, CONFIG.validatingMs);
+  }
+
+  function requestCancel() {
+    if (!CONFIG.escrow) return;             // sin escrow no hay cancelación
+    openModal('cancel');
+  }
+
+  function openError(hold) {
+    bindText('error.text', t(CONFIG.escrow ? 'error.textEscrow' : 'error.textNoEscrow'));
+    openModal('error', { hold: hold });
+  }
+
+  function afterFailure() {
+    if (insertedUSD() > 0) returnOrExit('inventory');
+    else go('start');
+  }
+
+  /* Dinero ya recibido: con escrow se devuelve; sin escrow se entrega comprobante de incidencia */
+  function returnOrExit(reason) {
+    if (insertedUSD() <= 0) { go('start'); return; }
+    if (CONFIG.escrow) returnBills(false);
+    else openIncident(reason || 'abandon');
+  }
+
+  function returnBills(hold) {
+    clearFlowTimers();
+    openModal('returning', { hold: hold });
+    if (hold) return;
+    later(function () { closeModal(); go('start'); }, CONFIG.returningMs);
+  }
+
+  function openIncident(reason) {
+    closeModal();
+    var folio = 'INC' + randDigits(8);
+    state.incident = { folio: folio, stamp: nowStamp(), usd: insertedUSD(), reason: reason };
+    go('incident');
+  }
+
+  /* Entrega: billetes → monedas → ticket (el ticket se imprime durante la entrega) */
+  function startDeliver(opts) {
+    var deal = state.deal;
+    var cents = mxnCents(deal.usd, deal.rate);
+    state.receipt = {
+      folio: 'MO101030' + randDigits(6),
+      stamp: nowStamp(),
+      usd: deal.usd,
+      rate: deal.rate,
+      cents: cents
+    };
+    state.phase = 0;
+    if (opts && opts.hold) { state.phase = opts.phase || 0; render(); return; }
+    later(function () { setPhase(1); }, CONFIG.billsMs);
+    later(function () {
+      if (CONFIG.failDelivery) openIncident('delivery');
+      else setPhase(2);
+    }, CONFIG.billsMs + CONFIG.coinsMs);
+    later(function () { setPhase(3); }, CONFIG.billsMs + CONFIG.coinsMs + CONFIG.ticketMs);
+  }
+  function setPhase(p) {
+    state.phase = p;
+    render();
+    if (p === 3 && CONFIG.idleEnabled) startDoneCountdown();
+  }
+
+  function finish() { go('start'); }
+
+  function startDoneCountdown() {
+    var el = $('[data-bind="dv.count"]');
+    var n = CONFIG.doneCountdownS;
+    el.hidden = false;
+    el.textContent = t('deliver.countdown', { n: n });
+    clearInterval(doneTick);
+    doneTick = setInterval(function () {
+      n -= 1;
+      el.textContent = t('deliver.countdown', { n: n });
+      if (n <= 0) { clearInterval(doneTick); doneTick = null; go('start'); }
+    }, 1000);
+  }
+
+  /* ------------------------------------------------------------------ Definición de pantallas */
   var SCREENS = {
-    welcome: {
+    start: {
       step: 0,
+      onEnter: function () { resetSession(); state.privacyOk = false; },
       actions: function () {
         return {
-          secondary: { label: 'ENGLISH', flag: 'us', variant: 'lang', active: state.lang === 'en', onClick: function () { setLang('en'); } },
-          primary: { label: 'ESPA\u00d1OL', flag: 'mx', variant: 'lang', active: state.lang === 'es', onClick: function () { setLang('es'); } }
-        };
-      },
-      onEnter: function () { resetSession(); }
-    },
-    privacy: {
-      step: 0,
-      actions: function () {
-        return {
-          secondary: { key: 'btn.decline', variant: 'ghost', onClick: function () { go('welcome'); } },
-          primary: { key: 'btn.accept', variant: 'cyan', onClick: function () { go('amount'); } }
+          secondary: null,
+          primary: { key: 'btn.start', variant: 'cyan', enabled: !CONFIG.privacyCheck || state.privacyOk, onClick: startSession }
         };
       }
     },
-    amount: {
-      step: 1,
-      actions: function () {
-        return {
-          secondary: { key: 'btn.back', variant: 'danger', onClick: function () { go('welcome'); } },
-          primary: { key: 'btn.continue', variant: 'success', enabled: amountUSD() >= CONFIG.minUSD, onClick: toBills }
-        };
-      }
-    },
-    bills: {
+    insert: {
       step: 2,
+      onEnter: function () { state.deal = null; },
       actions: function () {
         return {
-          secondary: { key: 'btn.cancel', variant: 'danger', onClick: requestCancel },
-          primary: { key: 'btn.continue', variant: 'success', enabled: isEnough(), onClick: validate }
+          secondary: null,
+          primary: { key: 'btn.finish', variant: 'cyan', enabled: insertedUSD() > 0, onClick: validate }
         };
       }
     },
     confirm: {
       step: 3,
+      onEnter: function () { state.deal = { usd: insertedUSD(), rate: rateCents() }; },   // tipo de cambio fijado
       actions: function () {
         return {
-          secondary: { key: 'btn.cancel', variant: 'danger', onClick: requestCancel },
-          primary: { key: 'btn.confirm', variant: 'success', onClick: deliver }
+          secondary: CONFIG.escrow ? { key: 'btn.cancel', variant: 'ghost', onClick: requestCancel } : null,
+          primary: { key: 'btn.confirm', variant: 'cyan', onClick: function () { go('deliver'); } }
         };
       }
     },
-    delivering: {
+    deliver: {
       step: 4,
-      actions: function () { return {}; },
-      onEnter: function () { later(finish, CONFIG.deliveringMs); }
-    },
-    done: {
-      step: 5,   // todos los pasos completados
+      onEnter: function (opts) { startDeliver(opts); },
       actions: function () {
-        return { primary: { key: 'btn.continue', variant: 'cyan', onClick: function () { go('welcome'); } } };
-      },
-      onEnter: function () { startDoneCountdown(); }
+        return {
+          secondary: null,
+          primary: state.phase === 3 ? { key: 'deliver.done', variant: 'cyan', onClick: finish } : null
+        };
+      }
+    },
+    incident: {
+      step: 4,
+      actions: function () {
+        return { secondary: null, primary: { key: 'deliver.done', variant: 'cyan', onClick: finish } };
+      }
+    },
+    oos: {
+      step: 0,
+      actions: function () { return { secondary: null, primary: null }; }
     }
   };
 
   /* ------------------------------------------------------------------ Navegación */
-  function go(screen) {
+  function go(screen, opts) {
     clearFlowTimers();
     state.screen = screen;
     state.notice = null;
@@ -185,47 +333,12 @@
     $$('.screen').forEach(function (s) { s.classList.toggle('is-active', s.dataset.id === screen); });
     var def = SCREENS[screen];
     $('#stepper').hidden = !def.step;
-    if (def.onEnter) def.onEnter();
+    if (def.onEnter) def.onEnter(opts);
     render();
     resetIdle();
   }
 
-  function resetSession() {
-    state.amount = ''; state.bills = {}; state.lastBill = null;
-    state.notice = null; state.hintError = false; state.folio = null; state.stamp = null;
-  }
-
-  function toBills() {
-    if (amountUSD() < CONFIG.minUSD) return;
-    state.bills = {};
-    go('bills');
-  }
-
-  /* ------------------------------------------------------------------ Paso 3: teclado */
-  var hintTimer = null;
-  function pressKey(k) {
-    if (state.screen !== 'amount' || state.modal) return;
-    if (k === 'back') {
-      state.amount = state.amount.slice(0, -1);
-    } else if (k === 'clear') {
-      state.amount = '';
-    } else {
-      var next = (state.amount + k).replace(/^0+/, '');
-      if (next === '') return;
-      if (parseInt(next, 10) > CONFIG.maxUSD) {
-        state.hintError = true;
-        clearTimeout(hintTimer);
-        hintTimer = setTimeout(function () { state.hintError = false; render(); }, 2600);
-        render();
-        return;
-      }
-      state.amount = next;
-    }
-    state.hintError = false;
-    render();
-  }
-
-  /* ------------------------------------------------------------------ Paso 4: billetes */
+  /* ------------------------------------------------------------------ Billetes */
   var noticeTimer = null;
   function showNotice(key, params, sticky) {
     state.notice = { key: key, params: params };
@@ -235,24 +348,22 @@
   }
 
   function insertBill(d) {
-    if (state.screen !== 'bills' || state.modal) return;
-    if (insertedUSD() + d > CONFIG.maxUSD) {
-      showNotice('bills.limit', { max: '$' + nf0.format(CONFIG.maxUSD) });
-      return;
-    }
+    if (state.screen !== 'insert' || state.modal) return;
+    if (isLocked()) { showNotice('insert.capReached', { max: nf0.format(capUSD()) }); return; }
+    if (insertedUSD() + d > capUSD()) { showNotice('reject.cap', { max: nf0.format(capUSD()) }); return; }
     state.notice = null;
     state.bills[d] = (state.bills[d] || 0) + 1;
     state.lastBill = d;
     render();
-    var tile = $('[data-bind="inserted.tile"]');
-    tile.classList.remove('is-bump'); void tile.offsetWidth; tile.classList.add('is-bump');
+    var tile = $('[data-bind="ins.entered"]');
+    if (tile) { tile.classList.remove('is-bump'); void tile.offsetWidth; tile.classList.add('is-bump'); }
     setTimeout(function () { state.lastBill = null; }, 700);
     resetIdle();
   }
 
-  function rejectBill(sticky) {
-    if (state.screen !== 'bills' || state.modal) return;
-    showNotice('bills.rejected', null, !!sticky);
+  function rejectBill(reason) {
+    if (state.screen !== 'insert' || state.modal) return;
+    showNotice('reject.' + (reason || 'damaged'), null, false);
   }
 
   /* ------------------------------------------------------------------ Modales */
@@ -270,58 +381,8 @@
     emit();
   }
 
-  function validate() {
-    if (!isEnough()) return;
-    openModal('validating');
-    later(function () {
-      if (CONFIG.failInventory) { openModal('error'); }
-      else { closeModal(); go('confirm'); }
-    }, CONFIG.validatingMs);
-  }
-
-  function requestCancel() {
-    if (state.screen === 'bills' && insertedUSD() === 0) { go('welcome'); return; }
-    bindText('cancel.text', insertedUSD() > 0 ? t('cancel.textBills') : t('cancel.text'));
-    openModal('cancel');
-  }
-
-  function returnBills(hold) {
-    clearFlowTimers();
-    openModal('returning', { hold: hold });
-    if (hold) return;
-    later(function () { closeModal(); go('welcome'); }, CONFIG.returningMs);
-  }
-
-  function endSession() {
-    closeModal();
-    if (insertedUSD() > 0) returnBills(false); else go('welcome');
-  }
-
-  function deliver() { go('delivering'); }
-
-  function finish() {
-    var d = new Date();
-    var p = function (n) { return String(n).padStart(2, '0'); };
-    state.folio = 'MO101030' + String(Math.floor(Math.random() * 1e6)).padStart(6, '0');
-    state.stamp = p(d.getDate()) + '-' + p(d.getMonth() + 1) + '-' + d.getFullYear() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
-    go('done');
-  }
-
-  function startDoneCountdown() {
-    var el = $('[data-bind="done.countdown"]');
-    el.hidden = !CONFIG.idleEnabled;
-    if (!CONFIG.idleEnabled) return;
-    var n = CONFIG.doneCountdownS;
-    el.textContent = t('done.countdown', { n: n });
-    doneTick = setInterval(function () {
-      n -= 1;
-      el.textContent = t('done.countdown', { n: n });
-      if (n <= 0) { clearInterval(doneTick); go('welcome'); }
-    }, 1000);
-  }
-
   /* ------------------------------------------------------------------ Inactividad */
-  var IDLE_SCREENS = ['privacy', 'amount', 'bills', 'confirm'];
+  var IDLE_SCREENS = ['insert', 'confirm'];
 
   function resetIdle() {
     clearTimeout(idleTimer);
@@ -330,31 +391,27 @@
     idleTimer = setTimeout(openIdle, CONFIG.idleMs);
   }
 
-  function openIdle() {
+  function openIdle(opts) {
     var n = CONFIG.idleCountdownS;
     bindText('idle.text', t('idle.text', { n: n }));
-    openModal('idle');
+    openModal('idle', opts);
+    if (opts && opts.hold) return;
     clearInterval(idleTick);
     idleTick = setInterval(function () {
       n -= 1;
       bindText('idle.text', t('idle.text', { n: n }));
-      if (n <= 0) { clearInterval(idleTick); endSession(); }
+      if (n <= 0) { clearInterval(idleTick); idleTick = null; closeModal(); returnOrExit('abandon'); }
     }, 1000);
   }
-
   function stopIdleCountdown() { clearInterval(idleTick); idleTick = null; }
 
   /* ------------------------------------------------------------------ Render */
   function setBtn(btn, cfg) {
-    if (!cfg) { btn.hidden = true; return; }
+    if (!cfg) { btn.hidden = true; btn.onclick = null; return; }
     btn.hidden = false;
-    btn.className = 'btn btn--' + cfg.variant + (cfg.active ? ' is-active' : '');
+    btn.className = 'btn btn--' + cfg.variant;
     btn.disabled = cfg.enabled === false;
-    btn.querySelector('.btn__label').textContent = cfg.label != null ? cfg.label : t(cfg.key);
-    var flag = btn.querySelector('.btn__flag');
-    // Los <svg> no tienen la propiedad .hidden: se usa el atributo directamente
-    if (cfg.flag) { flag.removeAttribute('hidden'); flag.firstElementChild.setAttribute('href', '#flag-' + cfg.flag); }
-    else { flag.setAttribute('hidden', ''); }
+    btn.querySelector('.btn__label').innerHTML = cfg.label != null ? cfg.label : tHTML(cfg.key);
     btn.onclick = cfg.onClick;
   }
 
@@ -362,109 +419,183 @@
     var cur = SCREENS[state.screen].step;
     $$('.step').forEach(function (li) {
       var n = Number(li.dataset.step);
-      var st = cur === 5 || n < cur ? 'done' : (n === cur ? 'active' : 'todo');
+      var st = n < cur ? 'done' : (n === cur ? 'active' : 'todo');
       li.dataset.state = st;
-      li.querySelector('.step__dot').innerHTML = st === 'done'
-        ? '<svg class="icon"><use href="#i-check"/></svg>'
-        : String(n);
+      li.querySelector('.step__dot').innerHTML = st === 'done' ? '<svg class="icon"><use href="#i-check"/></svg>' : String(n);
     });
   }
 
-  function render() {
-    var rate = CONFIG.rate.toFixed(2);
-    bindText('rate', rate);
+  function renderStart() {
+    var rc = rateCents();
+    bindText('rate', (rc / 100).toFixed(2));
+    bindHidden('fee', !CONFIG.feeFree);
+    bindHidden('cap.note', !CONFIG.dynamicCap);
+    bindHTML('cap.note', tHTML('rate.capNote', { max: nf0.format(CONFIG.dynamicCapUSD) }));
+    bindHTML('table.rows', PREVIEW_AMOUNTS.map(function (usd) {
+      return '<li class="tbl__row"><span class="tbl__usd"><span class="num">' + nf0.format(usd) + '</span><small>USD</small></span>' +
+        '<span class="tbl__arrow" aria-hidden="true">\u2192</span>' +
+        '<span class="tbl__mxn">' + money(mxnCents(usd, rc), 'MXN') + '</span></li>';
+    }).join(''));
+    bindHidden('priv.check', !CONFIG.privacyCheck);
+    var chk = $('#privacyCheck');
+    if (chk) chk.checked = state.privacyOk;
+    $$('[data-lang]', $('#langGroup')).forEach(function (b) {
+      b.classList.toggle('is-active', b.dataset.lang === state.lang);
+    });
+  }
 
-    /* Paso 3 — monto */
-    var a = amountUSD();
-    var entry = $('[data-bind="entry"]');
-    entry.classList.toggle('is-empty', a === 0);
-    entry.classList.toggle('is-error', state.hintError);
-    bindText('entry.value', '$' + nf0.format(a));
-    bindHTML('amount.usd', money(a, 'USD'));
-    bindHTML('amount.mxn', money(mxnFor(a), 'MXN', true));
-    var hint = $('[data-bind="amount.hint"]');
-    hint.classList.toggle('is-error', state.hintError);
-    hint.textContent = state.hintError
-      ? t('amount.max', { max: '$' + nf0.format(CONFIG.maxUSD) })
-      : t('amount.limit', { min: '$' + CONFIG.minUSD, max: '$' + nf0.format(CONFIG.maxUSD) });
-
-    /* Paso 4 — billetes */
+  function renderInsert() {
     var ins = insertedUSD();
-    var enough = isEnough();
-    bindHTML('bills.target', money(a, 'USD'));
-    bindHTML('bills.inserted', money(ins, 'USD'));
-    bindHTML('bills.mxn', money(mxnFor(ins), 'MXN', true));
-    $('[data-bind="target.tile"]').classList.toggle('is-ok', enough);
-    $('[data-bind="inserted.tile"]').classList.toggle('is-ok', enough);
-
+    var cap = capUSD();
+    var locked = isLocked();
+    var rc = rateCents();
+    bindHTML('ins.entered', money(ins * 100, 'USD'));
+    bindHTML('ins.receive', money(mxnCents(ins, rc), 'MXN'));
+    bindText('ins.rate', (rc / 100).toFixed(2));
+    bindText('ins.limit', t('insert.limit', { max: nf0.format(cap) }));
+    var bar = $('[data-bind="ins.bar"]');
+    if (bar) bar.style.width = Math.min(100, (ins / cap) * 100) + '%';
+    bindHidden('ins.banner', !locked);
+    bindHTML('ins.banner', tHTML('insert.capReached', { max: nf0.format(cap) }));
+    $('[data-id="insert"] .acceptor').classList.toggle('is-locked', locked);
+    $('[data-id="insert"]').classList.toggle('is-locked', locked);
     var dens = Object.keys(state.bills).map(Number).sort(function (x, y) { return y - x; });
-    bindHTML('bill.list', dens.map(function (d) {
+    $('[data-bind="ins.feed"]').classList.toggle('is-empty', dens.length === 0);
+    bindHTML('ins.list', dens.map(function (d) {
       var c = state.bills[d];
       return '<li class="bill-row' + (state.lastBill === d ? ' is-new' : '') + '">' +
-        '<span class="bill" data-denom="' + d + '"><b>' + d + '</b></span>' +
+        '<span class="bill" data-denom="' + d + '"><b>' + USD_BILL_LABEL(d) + '</b></span>' +
         '<span class="bill-row__qty">\u00d7 ' + c + '</span>' +
-        '<span class="bill-row__sub">= $' + nf0.format(d * c) + '</span></li>';
+        '<span class="bill-row__sub num">' + nf0.format(d * c) + ' USD</span></li>';
     }).join(''));
-    $('[data-bind="feed"]').classList.toggle('is-empty', dens.length === 0);
-
     var notice = $('[data-bind="notice"]');
     notice.hidden = !state.notice;
-    if (state.notice) bindText('notice.text', t(state.notice.key, state.notice.params));
+    if (state.notice) bindHTML('notice.text', tHTML(state.notice.key, state.notice.params));
+  }
 
-    /* Paso 5 — confirmación / 6 — entrega / 7 — resultado */
-    var mxn = mxnFor(ins);
-    bindHTML('confirm.amount', money(a, 'USD'));
-    bindHTML('confirm.inserted', money(ins, 'USD'));
-    bindHTML('confirm.mxn', money(mxn, 'MXN'));
-    bindHTML('deliver.mxn', money(mxn, 'MXN'));
-    bindHTML('done.amount', money(a, 'USD'));
-    bindHTML('done.inserted', money(ins, 'USD'));
-    bindHTML('done.mxn', money(mxn, 'MXN'));
-    bindText('done.folio', state.folio || '—');
-    bindText('done.date', state.stamp || '—');
+  function renderConfirm() {
+    var deal = state.deal || { usd: insertedUSD(), rate: rateCents() };
+    var cents = mxnCents(deal.usd, deal.rate);
+    bindHTML('cf.usd', money(deal.usd * 100, 'USD'));
+    bindHTML('cf.mxn', money(cents, 'MXN'));
+    bindText('cf.rate', (deal.rate / 100).toFixed(2));
+    bindText('cf.pref', t(state.use200 ? 'confirm.prefer500' : 'confirm.prefer200'));
+    var bd = breakdown(cents, state.use200);
+    var coinsSum = bd.coins.reduce(function (s, p) { return s + p.d * p.n; }, 0);
+    var detail = piecesText(bd.bills, false);
+    if (coinsSum) detail += '  ' + t('confirm.coinsPlus', { amount: '$' + nf2.format(coinsSum / 100) });
+    bindText('cf.billsDetail', detail);
+  }
 
+  function renderDeliver() {
+    var r = state.receipt;
+    var ph = state.phase;
+    var done = ph === 3;
+    bindText('dv.title', t(done ? 'deliver.ready' : 'deliver.title'));
+    $('[data-bind="dv.spin"]').hidden = done;
+    $('[data-bind="dv.ok"]').hidden = !done;
+    if (!r) return;
+    var bd = breakdown(r.cents, state.use200);
+    bindText('dv.billsDetail', piecesText(bd.bills, false));
+    bindText('dv.coinsDetail', bd.coins.length ? piecesText(bd.coins, true) : t('deliver.none'));
+    $$('[data-phase]', kiosk).forEach(function (li) {
+      var p = Number(li.dataset.phase);
+      var st = done || p < ph ? 'done' : (p === ph ? 'active' : 'todo');
+      li.dataset.state = st;
+      li.querySelector('.dv__dot').innerHTML = st === 'done' ? '<svg class="icon"><use href="#i-check"/></svg>' : '';
+    });
+    $('[data-bind="dv.printing"]').hidden = ph >= 2;
+    $('[data-bind="dv.receipt"]').hidden = ph < 2;
+    bindText('dv.folio', r.folio);
+    bindText('dv.date', r.stamp);
+    bindHTML('dv.usd', money(r.usd * 100, 'USD'));
+    bindText('dv.rate', (r.rate / 100).toFixed(2));
+    bindHTML('dv.mxn', money(r.cents, 'MXN'));
+    if (!done) bindHidden('dv.count', true);
+  }
+
+  function renderIncident() {
+    var inc = state.incident;
+    if (!inc) return;
+    bindText('inc.folio', inc.folio);
+    bindText('inc.date', inc.stamp);
+    bindHTML('inc.usd', money(inc.usd * 100, 'USD'));
+  }
+
+  function render() {
+    applyI18n();
+    /* Pantalla activa */
+    var s = state.screen;
+    if (s === 'start') renderStart();
+    if (s === 'insert') renderInsert();
+    if (s === 'confirm') renderConfirm();
+    if (s === 'deliver') renderDeliver();
+    if (s === 'incident') renderIncident();
     /* Chrome común */
     renderStepper();
-    var cfg = SCREENS[state.screen].actions();
+    var cfg = SCREENS[s].actions();
+    kiosk.classList.toggle('has-langs', s === 'start');
     setBtn($('#btnSecondary'), cfg.secondary);
     setBtn($('#btnPrimary'), cfg.primary);
     emit();
   }
 
   /* ------------------------------------------------------------------ Salto directo (revisión de diseño) */
+  var SAMPLES = {
+    partial: { 20: 2, 5: 1, 1: 3 },   // 48 USD
+    confirm: { 5: 1 }                  // 5 USD
+  };
+  function fullCap() {
+    var cap = capUSD(), n = Math.floor(cap / 100), b = {};
+    if (n) b[100] = n;
+    if (cap - n * 100) b[1] = cap - n * 100;
+    return b;
+  }
+  function setBills(b) { state.bills = JSON.parse(JSON.stringify(b)); state.lastBill = null; }
+  function makeDeal() { state.deal = { usd: insertedUSD(), rate: rateCents() }; }
+
   function jump(id) {
     clearFlowTimers(); stopIdleCountdown(); closeModal();
     resetSession();
-    var bills = {
-      empty: { amount: '5', bills: {} },
-      partial: { amount: '100', bills: { 20: 2, 5: 1, 1: 3 } },
-      ok: { amount: '50', bills: { 20: 2, 10: 1 } },
-      confirm: { amount: '5', bills: { 5: 1 } }
-    };
-    function setup(p) { state.amount = p.amount; state.bills = JSON.parse(JSON.stringify(p.bills)); }
-
+    privacyFix();
+    // Fuera del inicio el idioma ya está elegido: se usa español si el panel no lo fijó
+    if (id !== 'start' && !state.lang) setLang('es');
     switch (id) {
-      case 'welcome': case 'privacy': case 'amount': go(id); break;
-      case 'bills': setup(bills.empty); go('bills'); break;
-      case 'bills-partial': setup(bills.partial); go('bills'); break;
-      case 'bills-ok': setup(bills.ok); go('bills'); break;
-      case 'confirm': setup(bills.confirm); go('confirm'); break;
-      case 'delivering': setup(bills.confirm); go('delivering'); clearFlowTimers(); break;   // se queda en "Entregando"
-      case 'done': setup(bills.confirm); finish(); break;
-      case 'modal:validating': setup(bills.ok); go('bills'); openModal('validating', { hold: true }); break;
-      case 'modal:cancel': setup(bills.partial); go('bills'); bindText('cancel.text', t('cancel.textBills')); openModal('cancel', { hold: true }); break;
-      case 'modal:returning': setup(bills.partial); go('bills'); returnBills(true); break;
-      case 'modal:error': setup(bills.confirm); go('bills'); openModal('error', { hold: true }); break;
-      case 'modal:idle': setup(bills.partial); go('bills'); bindText('idle.text', t('idle.text', { n: CONFIG.idleCountdownS })); openModal('idle', { hold: true }); break;
-      case 'notice:reject': setup(bills.partial); go('bills'); showNotice('bills.rejected', null, true); break;
-      default: go('welcome');
+      case 'start': go('start'); break;
+      case 'insert-empty': go('insert'); break;
+      case 'insert-partial': setBills(SAMPLES.partial); go('insert'); break;
+      case 'insert-cap': setBills(fullCap()); go('insert'); break;
+      case 'confirm': setBills(SAMPLES.confirm); go('confirm'); break;
+      case 'deliver-run': setBills(SAMPLES.confirm); go('confirm'); go('deliver', { hold: true, phase: 1 }); break;
+      case 'deliver': setBills(SAMPLES.confirm); go('confirm'); go('deliver', { hold: true, phase: 3 }); break;
+      case 'incident': setBills(SAMPLES.confirm); go('insert'); openIncident('delivery'); break;
+      case 'oos': go('oos'); break;
+      case 'modal:validating': setBills(SAMPLES.partial); go('insert'); openModal('validating', { hold: true }); break;
+      case 'modal:cancel': setBills(SAMPLES.partial); go('confirm'); openModal('cancel', { hold: true }); break;
+      case 'modal:returning': setBills(SAMPLES.partial); go('insert'); returnBills(true); break;
+      case 'modal:error': setBills(SAMPLES.partial); go('insert'); openError(true); break;
+      case 'modal:idle': setBills(SAMPLES.partial); go('insert'); openIdle({ hold: true }); break;
+      case 'notice:reject': setBills(SAMPLES.partial); go('insert'); showNotice('reject.misplaced', null, true); break;
+      default: go('start');
     }
+  }
+  function privacyFix() { state.privacyOk = false; }
+
+  /* ------------------------------------------------------------------ Controles del panel */
+  function setRate(v) {
+    CONFIG.rate = Math.round(v * 100) / 100;
+    render();
+  }
+  function setOutOfService(on) {
+    CONFIG.outOfService = !!on;
+    clearFlowTimers(); stopIdleCountdown(); closeModal(); resetSession();
+    go(on ? 'oos' : 'start');
   }
 
   /* ------------------------------------------------------------------ Eventos */
   kiosk.addEventListener('click', function (e) {
-    var keyEl = e.target.closest('[data-key]');
-    if (keyEl) { pressKey(keyEl.dataset.key); return; }
+    var langEl = e.target.closest('[data-lang]');
+    if (langEl) { setLang(langEl.dataset.lang); return; }
 
     var act = e.target.closest('[data-action]');
     if (!act) {
@@ -472,34 +603,28 @@
       return;
     }
     switch (act.dataset.action) {
-      case 'start': go('privacy'); break;
+      case 'toggle-prefer': togglePrefer(); break;
       case 'cancel-keep': closeModal(); resetIdle(); break;
-      case 'cancel-yes':
-        closeModal();
-        if (insertedUSD() > 0) returnBills(false); else go('welcome');
-        break;
-      case 'error-ok': closeModal(); returnBills(false); break;
+      case 'cancel-yes': closeModal(); returnOrExit('cancel'); break;
+      case 'error-ok': closeModal(); afterFailure(); break;
       case 'idle-ok': stopIdleCountdown(); closeModal(); resetIdle(); break;
+    }
+  });
+
+  kiosk.addEventListener('change', function (e) {
+    if (e.target && e.target.id === 'privacyCheck') {
+      state.privacyOk = e.target.checked;
+      render();
     }
   });
 
   kiosk.addEventListener('pointerdown', function () { if (state.modal !== 'idle') resetIdle(); });
 
-  document.addEventListener('keydown', function (e) {
-    if (e.target.closest && e.target.closest('input, select, textarea')) return;
-    if (state.screen !== 'amount' || state.modal) return;
-    if (/^\d$/.test(e.key)) { pressKey(e.key); }
-    else if (e.key === 'Backspace') { pressKey('back'); e.preventDefault(); }
-    else if (e.key === 'Escape' || e.key === 'Delete') { pressKey('clear'); }
-    else if (e.key === 'Enter' && amountUSD() >= CONFIG.minUSD) { toBills(); }
-    resetIdle();
-  });
-
   /* ------------------------------------------------------------------ Init */
   applyI18n();
   tick();
   setInterval(tick, 1000);
-  go('welcome');
+  go('start');
 
   /* ------------------------------------------------------------------ API pública (panel de revisión) */
   global.Kiosk = {
@@ -509,11 +634,14 @@
     go: go,
     jump: jump,
     setLang: setLang,
+    setRate: setRate,
+    setOutOfService: setOutOfService,
+    render: render,
     insertBill: insertBill,
     rejectBill: rejectBill,
     resetIdle: resetIdle,
     stopIdleCountdown: stopIdleCountdown,
-    reset: function () { clearFlowTimers(); stopIdleCountdown(); closeModal(); go('welcome'); },
+    reset: function () { clearFlowTimers(); stopIdleCountdown(); closeModal(); CONFIG.outOfService = false; go('start'); },
     onChange: function (fn) { listeners.push(fn); }
   };
 })(window);
