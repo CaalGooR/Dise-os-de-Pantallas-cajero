@@ -880,10 +880,16 @@
   .tbl__usd .num, .tbl__mxn .money, .tbl__mxn .money .num { font-size: calc(var(--px) * 60); }
   .tbl__usd small { font-size: calc(var(--px) * 30); }
   .tbl__mxn .money__cur { font-size: calc(var(--px) * 28); }
-  .privacy { gap: calc(var(--px) * 40); padding-top: calc(var(--px) * 40); }
-  .privacy__qr { width: calc(var(--px) * 190); height: calc(var(--px) * 190); }
-  .privacy__line { font-size: calc(var(--px) * 48); }
-  .privacy__more { font-size: calc(var(--px) * 36); }
+  /* Aviso de privacidad: más alto y con QR grande. Se usa la misma especificidad que
+     `.screen--start.is-notable` (tabla oculta, activa por defecto) para que prevalezca. */
+  .screen--start .privacy,
+  .screen--start.is-notable .privacy { gap: calc(var(--px) * 52); padding-top: calc(var(--px) * 64); padding-bottom: calc(var(--px) * 64); }
+  .screen--start .privacy__qr,
+  .screen--start.is-notable .privacy__qr { width: calc(var(--px) * 280); height: calc(var(--px) * 280); border-radius: calc(var(--px) * 16); }
+  .screen--start .privacy__line,
+  .screen--start.is-notable .privacy__line { font-size: calc(var(--px) * 58); line-height: 1.2; }
+  .screen--start .privacy__more,
+  .screen--start.is-notable .privacy__more { font-size: calc(var(--px) * 42); }
   /* Bilingüe (antes de elegir idioma): el texto ocupa más líneas, así que se reduce un poco */
   .kiosk.is-bilingual .privacy__qr { width: calc(var(--px) * 170); height: calc(var(--px) * 170); }
   .kiosk.is-bilingual .privacy__line { font-size: calc(var(--px) * 44); }

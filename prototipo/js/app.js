@@ -55,7 +55,7 @@
   /* ------------------------------------------------------------------ Estado */
   var state = {
     screen: 'start',
-    lang: null,                  // null = bilingüe (ES + EN) hasta elegir bandera
+    lang: 'es',                  // español por defecto; las banderas solo cambian el idioma
     bills: {},                   // { denominación USD: cantidad }
     lastBill: null,
     notice: null,                // { key, params }
@@ -188,9 +188,18 @@
     state.deal = null; state.phase = 0; state.receipt = null; state.incident = null;
   }
 
+  /* Fin de la sesión: el siguiente cliente empieza de nuevo, en español por defecto */
+  function endFlow() {
+    state.lang = 'es';
+    document.documentElement.lang = 'es';
+    go('start');
+    applyI18n();
+    tick();
+    render();
+  }
+
   /* ------------------------------------------------------------------ Acciones de pantalla */
   function startSession() {
-    if (!state.lang) return;      // elegir idioma es obligatorio antes de continuar
     go('insert');
   }
   function validate() {
@@ -287,8 +296,7 @@
       actions: function () {
         return {
           secondary: null,
-          // Sin idioma elegido el botón está bloqueado y pide elegirlo (ES + EN)
-          primary: { key: state.lang ? 'btn.start' : 'btn.chooseLang', variant: 'cyan', enabled: !!state.lang, onClick: startSession }
+          primary: { key: 'btn.start', variant: 'cyan', onClick: startSession }
         };
       }
     },
