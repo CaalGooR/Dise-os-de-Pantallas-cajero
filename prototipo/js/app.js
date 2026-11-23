@@ -56,7 +56,7 @@
   /* ------------------------------------------------------------------ Estado */
   var state = {
     screen: 'start',
-    lang: null,                  // null = bilingüe (ES + EN) hasta elegir bandera
+    lang: 'es',                  // español por defecto; el cliente puede cambiarlo solo desde el inicio
     bills: {},                   // { denominación USD: cantidad }
     lastBill: null,
     notice: null,                // { key, params }
@@ -127,19 +127,10 @@
     return s.replace(/\{(\w+)\}/g, function (m, k) { return params && params[k] != null ? params[k] : m; });
   }
   function t(key, params) { return tIn(state.lang || 'es', key, params); }
-  // Sin idioma elegido (pantalla de inicio): ES y EN a la vez
-  function tHTML(key, params) {
-    if (state.lang) return t(key, params);
-    return '<span class="bi bi--es">' + tIn('es', key, params) + '</span><span class="bi bi--en">' + tIn('en', key, params) + '</span>';
-  }
+  function tHTML(key, params) { return t(key, params); }
   function applyI18n() {
-    // El texto bilingüe solo existe en el inicio (y su botón del pie); el resto va en un solo idioma
-    $$('[data-i18n]').forEach(function (el) {
-      var key = el.getAttribute('data-i18n');
-      el.innerHTML = el.closest('[data-id="start"], #actions') ? tHTML(key) : t(key);
-    });
+    $$('[data-i18n]').forEach(function (el) { el.innerHTML = t(el.getAttribute('data-i18n')); });
     $$('[data-i18n-aria]').forEach(function (el) { el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria'))); });
-    kiosk.classList.toggle('is-bilingual', !state.lang);
   }
 
   /* ------------------------------------------------------------------ Bind */
@@ -166,8 +157,8 @@
 
   /* ------------------------------------------------------------------ Idioma */
   function setLang(lang) {
-    state.lang = lang;
-    document.documentElement.lang = lang || 'es';
+    state.lang = lang || 'es';
+    document.documentElement.lang = state.lang;
     applyI18n();
     tick();
     render();
@@ -180,14 +171,11 @@
   }
 
   /* ------------------------------------------------------------------ Acciones de pantalla */
-  function startSession() {
-    if (!state.lang) return;      // elegir idioma es obligatorio antes de continuar
-    go('insert');
-  }
+  function startSession() { go('insert'); }
 
-  /* Fin de la sesión: el siguiente cliente debe elegir idioma de nuevo */
+  /* Fin de la sesión: vuelve al inicio y al español por defecto */
   function endFlow() {
-    state.lang = null;
+    state.lang = 'es';
     document.documentElement.lang = 'es';
     go('start');
     applyI18n();
@@ -290,8 +278,7 @@
       actions: function () {
         return {
           secondary: null,
-          // Sin idioma elegido el botón está bloqueado y pide elegirlo (ES + EN)
-          primary: { key: state.lang ? 'btn.start' : 'btn.chooseLang', variant: 'cyan', enabled: !!state.lang, onClick: startSession }
+          primary: { key: 'btn.start', variant: 'cyan', enabled: true, onClick: startSession }
         };
       }
     },
@@ -573,8 +560,6 @@
   function jump(id) {
     clearFlowTimers(); stopIdleCountdown(); closeModal();
     resetSession();
-    // Fuera del inicio el idioma ya está elegido: se usa español si el panel no lo fijó
-    if (id !== 'start' && !state.lang) setLang('es');
     switch (id) {
       case 'start': go('start'); break;
       case 'insert-empty': go('insert'); break;

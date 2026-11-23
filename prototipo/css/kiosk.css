@@ -255,13 +255,6 @@
   transition: transform 0.12s, opacity 0.2s, background 0.2s;
 }
 .btn__label { display: flex; flex-direction: column; align-items: center; line-height: 1.1; }
-.btn__label .bi { display: block; }
-.btn__label .bi--en { font-size: 0.6em; font-weight: 600; opacity: 0.75; }
-.btn__label .bi--en::before { content: none; }
-
-/* Texto bilingüe (sin idioma elegido): ES · EN en la misma línea */
-.bi--en { opacity: 0.72; font-weight: 500; font-size: 0.78em; }
-.bi--en::before { content: " · "; }
 .btn:active:not(:disabled) { transform: scale(0.985); }
 .btn:focus-visible { outline: calc(var(--px) * 4) solid #fff; outline-offset: calc(var(--px) * 4); }
 .btn:disabled { opacity: 0.32; cursor: not-allowed; }
@@ -277,9 +270,16 @@
 .btn[hidden] { display: none; }
 
 /* Selector de idioma (solo en inicio) */
-.langs { display: none; gap: calc(var(--px) * 12); flex: 0 0 calc(var(--px) * 440); }
-.kiosk.has-langs .langs { display: flex; }
+.langs { display: none; }
+/* En inicio, los dos idiomas son hijos directos pie: Español | Aceptar (centro) | English */
+.kiosk.has-langs .langs { display: contents; }
 .kiosk.has-langs #btnSecondary { display: none; }
+.kiosk.has-langs .lang { flex: 0 0 calc(var(--px) * 300); }
+/* Los idiomas se pegan a las orillas del kiosco (el pie ocupa el ancho del padding) */
+.kiosk.has-langs .actions { width: calc(100% + var(--pad-x) * 2); margin: 0 calc(var(--pad-x) * -1); }
+.kiosk.has-langs .lang[data-lang="es"] { order: 0; }
+.kiosk.has-langs #btnPrimary { order: 1; }
+.kiosk.has-langs .lang[data-lang="en"] { order: 2; }
 .lang {
   appearance: none;
   flex: 1 1 0;
@@ -300,14 +300,6 @@
 }
 .lang.is-active { background: #fff; color: var(--c-indigo); border-color: #fff; }
 .lang.is-active .flag { box-shadow: none; }
-/* Idioma pendiente: los botones laten con un halo cian hasta que se elige uno */
-@keyframes langPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(4, 205, 216, 0); }
-  50% { box-shadow: 0 0 0 calc(var(--px) * 8) rgba(4, 205, 216, 0.38); }
-}
-.kiosk.is-bilingual .lang { border-color: var(--c-cyan); animation: langPulse 1.8s ease-in-out infinite; }
-@media (prefers-reduced-motion: reduce) { .kiosk.is-bilingual .lang { animation: none; } }
-
 /* --------------------------------------------------------------------------
    1 · Inicio: espera + tipo de cambio + idioma + privacidad
    Minimalista: sin tarjetas ni video. El tipo de cambio y la tabla son los
@@ -364,11 +356,6 @@
 .tbl__mxn .money { font-size: calc(var(--px) * 42); }
 .tbl__mxn .money .num { font-size: calc(var(--px) * 42); font-weight: 700; }
 .tbl__mxn .money__cur { font-size: calc(var(--px) * 22); }
-
-/* Textos largos bilingües: el inglés va debajo, más tenue (no en la misma línea) */
-.privacy__line .bi { display: block; }
-.privacy__line .bi--en { font-size: 0.7em; font-weight: 500; margin-top: 0.15em; }
-.privacy__line .bi--en::before { content: none; }
 
 /* Aviso de privacidad con QR: una franja discreta separada por una línea fina */
 .privacy {
@@ -829,11 +816,10 @@
   .screen--start.is-notable .privacy__qr { width: calc(var(--px) * 180); height: calc(var(--px) * 180); }
   .screen--start.is-notable .pills { margin-top: calc(var(--px) * 40); }
   .screen--start.is-notable .pill { font-size: calc(var(--px) * 42); }
-  /* Idioma en su propia fila, encima del botón principal */
-  .kiosk.has-langs .actions { flex-wrap: wrap; }
-  .kiosk.has-langs .langs { flex: 1 1 100%; flex-basis: 100%; }
-  .kiosk.has-langs #btnPrimary { flex: 1 1 100%; }
   .lang { font-size: var(--fs-md); min-height: calc(var(--px) * 88); }
+  .kiosk.has-langs .lang { flex: 0 1 calc(var(--px) * 200); min-width: 0; padding: 0 calc(var(--px) * 6); gap: calc(var(--px) * 8); font-size: calc(var(--px) * 36); }
+  .kiosk.has-langs #btnPrimary { min-width: 0; }
+  .kiosk.has-langs #btnPrimary .btn__label { font-size: calc(var(--px) * 40); white-space: nowrap; }
 
   .ins__head { flex-direction: column; }
   .rate-pill { align-self: flex-start; align-items: flex-start; }

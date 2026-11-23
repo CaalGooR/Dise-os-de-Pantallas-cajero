@@ -89,13 +89,11 @@
   /* ---------------------------------------------------------------- Idioma */
   document.getElementById('pvLang').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
-    // "" = sin elegir: solo existe en el inicio (ES + EN), así que se vuelve a esa pantalla
-    if (!b.dataset.lang && K.state.screen !== 'start') K.jump('start');
-    K.setLang(b.dataset.lang || null);
+    K.setLang(b.dataset.lang);
     syncLang();
   });
   function syncLang() {
-    var cur = K.state.lang || '';
+    var cur = K.state.lang;
     Array.prototype.forEach.call(document.querySelectorAll('#pvLang button'), function (b) {
       b.classList.toggle('is-active', b.dataset.lang === cur);
     });

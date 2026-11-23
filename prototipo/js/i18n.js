@@ -23,8 +23,6 @@
       'privacy.line': 'Al continuar aceptas el aviso de privacidad',
       'privacy.qr': 'Aviso completo',
       'btn.start': 'Aceptar y comenzar',
-      'btn.chooseLang': 'Elige tu idioma',
-
       /* Fuera de servicio (improvisado) */
       'oos.title': 'Kiosco fuera de servicio',
       'oos.text': 'Disculpa las molestias. Acude a la ventanilla para cambiar tus dólares.',
@@ -127,8 +125,6 @@
       'privacy.line': 'By continuing you accept the privacy notice',
       'privacy.qr': 'Full notice',
       'btn.start': 'Accept and start',
-      'btn.chooseLang': 'Choose your language',
-
       'oos.title': 'Kiosk out of service',
       'oos.text': 'Sorry for the inconvenience. Please visit the counter to exchange your dollars.',
 
