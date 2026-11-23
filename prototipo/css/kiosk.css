@@ -300,6 +300,13 @@
 }
 .lang.is-active { background: #fff; color: var(--c-indigo); border-color: #fff; }
 .lang.is-active .flag { box-shadow: none; }
+/* Idioma pendiente: los botones laten con un halo cian hasta que se elige uno */
+@keyframes langPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(4, 205, 216, 0); }
+  50% { box-shadow: 0 0 0 calc(var(--px) * 8) rgba(4, 205, 216, 0.38); }
+}
+.kiosk.is-bilingual .lang { border-color: var(--c-cyan); animation: langPulse 1.8s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .kiosk.is-bilingual .lang { animation: none; } }
 
 /* --------------------------------------------------------------------------
    1 · Inicio: espera + tipo de cambio + idioma + privacidad
@@ -369,6 +376,7 @@
   align-items: center;
   gap: calc(var(--px) * 36);
   padding-top: calc(var(--px) * 30);
+  padding-bottom: calc(var(--px) * 30);
   border-top: calc(var(--px) * 1.5) solid rgba(255, 255, 255, 0.14);
 }
 .privacy__qr { width: calc(var(--px) * 116); height: calc(var(--px) * 116); flex: none; border-radius: calc(var(--px) * 8); background: #fff; }
@@ -376,6 +384,42 @@
 .privacy__line { margin: 0; font-size: calc(var(--px) * 32); font-weight: 600; line-height: 1.25; }
 .privacy__more { margin: 0; font-size: calc(var(--px) * 26); font-weight: 500; color: var(--c-text-soft); }
 .privacy__more b { color: #fff; font-weight: 600; }
+
+/* --------------------------------------------------------------------------
+   1 · Inicio · propuesta B (sin tabla de equivalencias)
+   Composición centrada: el tipo de cambio es el único protagonista, con un halo
+   suave detrás. Se activa con .is-notable (panel: “Tabla de equivalencias”).
+   -------------------------------------------------------------------------- */
+.screen--start.is-notable .hero { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+.screen--start.is-notable .hero__table { display: none; }
+.screen--start.is-notable .hero__rate { position: relative; isolation: isolate; padding-right: 0; justify-items: center; gap: calc(var(--px) * 8); }
+.screen--start.is-notable .hero__rate::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  top: 52%;
+  width: 150%;
+  aspect-ratio: 1 / 0.62;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(closest-side, rgba(4, 205, 216, 0.20), rgba(4, 205, 216, 0.06) 55%, transparent 100%);
+  pointer-events: none;
+}
+.screen--start.is-notable .hello { font-size: calc(var(--px) * 46); }
+.screen--start.is-notable .rate-lead { font-size: calc(var(--px) * 42); margin-top: calc(var(--px) * 22); }
+.screen--start.is-notable .rate-big { justify-content: center; }
+.screen--start.is-notable .rate-big__sym { font-size: calc(var(--px) * 96); margin-top: calc(var(--px) * 26); margin-right: calc(var(--px) * 10); }
+.screen--start.is-notable .rate-big .num { font-size: calc(var(--px) * 220); }
+.screen--start.is-notable .rate-unit { font-size: calc(var(--px) * 42); }
+.screen--start.is-notable .pills { justify-content: center; margin-top: calc(var(--px) * 30); }
+.screen--start.is-notable .pill { font-size: calc(var(--px) * 32); }
+.screen--start.is-notable .privacy { justify-content: center; }
+/* QR más visible: tamaño mayor y un anillo claro que lo separa del fondo */
+.screen--start.is-notable .privacy__qr {
+  width: calc(var(--px) * 150);
+  height: calc(var(--px) * 150);
+  box-shadow: 0 0 0 calc(var(--px) * 6) rgba(255, 255, 255, 0.22), 0 calc(var(--px) * 10) calc(var(--px) * 30) rgba(0, 0, 0, 0.25);
+}
 
 /* --------------------------------------------------------------------------
    2 · Inserta tus dólares
@@ -771,10 +815,20 @@
   .tbl__usd .num, .tbl__mxn .money, .tbl__mxn .money .num { font-size: calc(var(--px) * 60); }
   .tbl__usd small { font-size: calc(var(--px) * 30); }
   .tbl__mxn .money__cur { font-size: calc(var(--px) * 28); }
-  .privacy { gap: calc(var(--px) * 40); padding-top: calc(var(--px) * 36); }
+  .privacy { gap: calc(var(--px) * 40); padding-top: calc(var(--px) * 36); padding-bottom: calc(var(--px) * 32); }
   .privacy__qr { width: calc(var(--px) * 140); height: calc(var(--px) * 140); }
   .privacy__line { font-size: calc(var(--px) * 40); }
   .privacy__more { font-size: calc(var(--px) * 32); }
+  /* Inicio · propuesta B vertical */
+  .screen--start.is-notable .hero__rate { gap: calc(var(--px) * 12); }
+  .screen--start.is-notable .hello { font-size: calc(var(--px) * 60); }
+  .screen--start.is-notable .rate-lead, .screen--start.is-notable .rate-unit { font-size: calc(var(--px) * 54); }
+  .screen--start.is-notable .rate-lead { margin-top: calc(var(--px) * 28); }
+  .screen--start.is-notable .rate-big__sym { font-size: calc(var(--px) * 116); margin-top: calc(var(--px) * 32); }
+  .screen--start.is-notable .rate-big .num { font-size: calc(var(--px) * 260); }
+  .screen--start.is-notable .privacy__qr { width: calc(var(--px) * 180); height: calc(var(--px) * 180); }
+  .screen--start.is-notable .pills { margin-top: calc(var(--px) * 40); }
+  .screen--start.is-notable .pill { font-size: calc(var(--px) * 42); }
   /* Idioma en su propia fila, encima del botón principal */
   .kiosk.has-langs .actions { flex-wrap: wrap; }
   .kiosk.has-langs .langs { flex: 1 1 100%; flex-basis: 100%; }

@@ -89,7 +89,9 @@
   /* ---------------------------------------------------------------- Idioma */
   document.getElementById('pvLang').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
-    K.setLang(b.dataset.lang || null);      // "" = bilingüe (ES + EN) hasta elegir bandera
+    // "" = sin elegir: solo existe en el inicio (ES + EN), así que se vuelve a esa pantalla
+    if (!b.dataset.lang && K.state.screen !== 'start') K.jump('start');
+    K.setLang(b.dataset.lang || null);
     syncLang();
   });
   function syncLang() {
@@ -131,6 +133,7 @@
     document.getElementById(id).addEventListener('change', function (e) { fn(e.target.checked); });
   }
   bindCheck('pvFee', function (on) { K.CONFIG.feeFree = on; K.render(); });
+  bindCheck('pvTable', function (on) { K.CONFIG.showTable = on; K.render(); });
   bindCheck('pvDynCap', function (on) { K.CONFIG.dynamicCap = on; K.render(); });
   bindCheck('pvEscrow', function (on) { K.CONFIG.escrow = on; K.render(); });
   bindCheck('pvOos', function (on) { K.setOutOfService(on); });

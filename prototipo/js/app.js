@@ -19,6 +19,7 @@
   var CONFIG = {
     rate: 18.38,                 // MXN por 1 USD (compra) — tipo de cambio en vivo
     feeFree: true,               // "Sin comisión" visible en inicio
+    showTable: false,            // tabla de equivalencias en inicio (propuesta B: sin tabla)
     capUSD: 800,                 // tope fijo por operación (documento)
     dynamicCap: false,           // tope dinámico (inventario bajo)
     dynamicCapUSD: 300,
@@ -132,7 +133,11 @@
     return '<span class="bi bi--es">' + tIn('es', key, params) + '</span><span class="bi bi--en">' + tIn('en', key, params) + '</span>';
   }
   function applyI18n() {
-    $$('[data-i18n]').forEach(function (el) { el.innerHTML = tHTML(el.getAttribute('data-i18n')); });
+    // El texto bilingüe solo existe en el inicio (y su botón del pie); el resto va en un solo idioma
+    $$('[data-i18n]').forEach(function (el) {
+      var key = el.getAttribute('data-i18n');
+      el.innerHTML = el.closest('[data-id="start"], #actions') ? tHTML(key) : t(key);
+    });
     $$('[data-i18n-aria]').forEach(function (el) { el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria'))); });
     kiosk.classList.toggle('is-bilingual', !state.lang);
   }
@@ -176,8 +181,18 @@
 
   /* ------------------------------------------------------------------ Acciones de pantalla */
   function startSession() {
-    if (!state.lang) setLang('es');
+    if (!state.lang) return;      // elegir idioma es obligatorio antes de continuar
     go('insert');
+  }
+
+  /* Fin de la sesión: el siguiente cliente debe elegir idioma de nuevo */
+  function endFlow() {
+    state.lang = null;
+    document.documentElement.lang = 'es';
+    go('start');
+    applyI18n();
+    tick();
+    render();
   }
   function togglePrefer() { state.use200 = !state.use200; render(); }
 
@@ -202,12 +217,12 @@
 
   function afterFailure() {
     if (insertedUSD() > 0) returnOrExit('inventory');
-    else go('start');
+    else endFlow();
   }
 
   /* Dinero ya recibido: con escrow se devuelve; sin escrow se entrega comprobante de incidencia */
   function returnOrExit(reason) {
-    if (insertedUSD() <= 0) { go('start'); return; }
+    if (insertedUSD() <= 0) { endFlow(); return; }
     if (CONFIG.escrow) returnBills(false);
     else openIncident(reason || 'abandon');
   }
@@ -216,7 +231,7 @@
     clearFlowTimers();
     openModal('returning', { hold: hold });
     if (hold) return;
-    later(function () { closeModal(); go('start'); }, CONFIG.returningMs);
+    later(function () { closeModal(); endFlow(); }, CONFIG.returningMs);
   }
 
   function openIncident(reason) {
@@ -252,7 +267,7 @@
     if (p === 3 && CONFIG.idleEnabled) startDoneCountdown();
   }
 
-  function finish() { go('start'); }
+  function finish() { endFlow(); }
 
   function startDoneCountdown() {
     var el = $('[data-bind="dv.count"]');
@@ -263,7 +278,7 @@
     doneTick = setInterval(function () {
       n -= 1;
       el.textContent = t('deliver.countdown', { n: n });
-      if (n <= 0) { clearInterval(doneTick); doneTick = null; go('start'); }
+      if (n <= 0) { clearInterval(doneTick); doneTick = null; endFlow(); }
     }, 1000);
   }
 
@@ -275,7 +290,8 @@
       actions: function () {
         return {
           secondary: null,
-          primary: { key: 'btn.start', variant: 'cyan', onClick: startSession }
+          // Sin idioma elegido el botón está bloqueado y pide elegirlo (ES + EN)
+          primary: { key: state.lang ? 'btn.start' : 'btn.chooseLang', variant: 'cyan', enabled: !!state.lang, onClick: startSession }
         };
       }
     },
@@ -425,6 +441,7 @@
   function renderStart() {
     var rc = rateCents();
     bindText('rate', (rc / 100).toFixed(2));
+    $('[data-id="start"]').classList.toggle('is-notable', !CONFIG.showTable);
     bindHidden('fee', !CONFIG.feeFree);
     bindHidden('cap.note', !CONFIG.dynamicCap);
     bindHTML('cap.note', tHTML('rate.capNote', { max: nf0.format(CONFIG.dynamicCapUSD) }));
@@ -631,7 +648,7 @@
     rejectBill: rejectBill,
     resetIdle: resetIdle,
     stopIdleCountdown: stopIdleCountdown,
-    reset: function () { clearFlowTimers(); stopIdleCountdown(); closeModal(); CONFIG.outOfService = false; go('start'); },
+    reset: function () { clearFlowTimers(); stopIdleCountdown(); closeModal(); CONFIG.outOfService = false; endFlow(); },
     onChange: function (fn) { listeners.push(fn); }
   };
 })(window);
