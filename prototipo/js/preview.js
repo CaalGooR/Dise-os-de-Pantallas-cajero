@@ -88,12 +88,12 @@
 
   /* ---------------------------------------------------------------- Idioma */
   document.getElementById('pvLang').addEventListener('click', function (e) {
-    var b = e.target.closest('button'); if (!b) return;
+    var b = e.target.closest('button'); if (!b || !b.dataset.lang) return;
     K.setLang(b.dataset.lang);
     syncLang();
   });
   function syncLang() {
-    var cur = K.state.lang;
+    var cur = K.state.lang || 'es';
     Array.prototype.forEach.call(document.querySelectorAll('#pvLang button'), function (b) {
       b.classList.toggle('is-active', b.dataset.lang === cur);
     });
