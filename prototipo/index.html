@@ -257,8 +257,7 @@
               </div>
 
               <div class="cf__foot">
-                <p class="cf__detail" data-bind="cf.billsDetail"></p>
-                <button class="link-btn" type="button" data-action="toggle-prefer" data-bind="cf.pref"></button>
+                <ul class="denoms denoms--compact" data-bind="cf.denoms"></ul>
               </div>
             </section>
 
@@ -275,14 +274,14 @@
                   <span class="dv__dot"></span>
                   <div class="dv__txt">
                     <b data-i18n="deliver.bills"></b>
-                    <small class="num" data-bind="dv.billsDetail"></small>
+                    <ul class="denoms denoms--compact" data-bind="dv.billsDetail"></ul>
                   </div>
                 </li>
                 <li class="dv__step" data-phase="1">
                   <span class="dv__dot"></span>
                   <div class="dv__txt">
                     <b data-i18n="deliver.coins"></b>
-                    <small class="num" data-bind="dv.coinsDetail"></small>
+                    <ul class="denoms denoms--compact" data-bind="dv.coinsDetail"></ul>
                   </div>
                 </li>
                 <li class="dv__step" data-phase="2">

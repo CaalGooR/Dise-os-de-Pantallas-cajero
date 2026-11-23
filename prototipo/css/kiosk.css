@@ -558,7 +558,8 @@
 /* --------------------------------------------------------------------------
    3 · Confirmación
    -------------------------------------------------------------------------- */
-.screen--confirm { justify-content: center; gap: calc(var(--px) * 36); }
+.screen--confirm { justify-content: center; gap: calc(var(--px) * 26); }
+.cf__foot .denoms { justify-content: center; }
 .screen--confirm .title { margin-top: calc(var(--px) * 16); }
 .cf__usd { display: flex; flex-direction: column; align-items: center; gap: calc(var(--px) * 10); }
 .cf__lbl { font-size: var(--fs-md); font-weight: 600; color: var(--c-text-soft); }
@@ -599,6 +600,70 @@
   text-underline-offset: calc(var(--px) * 6);
   cursor: pointer;
 }
+
+/* --------------------------------------------------------------------------
+   Denominaciones a entregar: chips con cara de billete o moneda
+   · Confirmación: cara + cantidad + subtotal
+   · Entrega (.denoms--compact): cara + cantidad, sin subtotal
+   -------------------------------------------------------------------------- */
+.denoms {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: calc(var(--px) * 14);
+}
+.denom {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--px) * 16);
+  padding: calc(var(--px) * 10) calc(var(--px) * 22) calc(var(--px) * 10) calc(var(--px) * 10);
+  border-radius: var(--r-sm);
+  background: var(--c-glass);
+  border: calc(var(--px) * 2) solid var(--c-line);
+}
+.denom__face {
+  min-width: calc(var(--px) * 124);
+  height: calc(var(--px) * 58);
+  padding: 0 calc(var(--px) * 14);
+  display: grid;
+  place-items: center;
+  border-radius: calc(var(--px) * 8);
+  background: var(--face, #dcdcf0);
+  color: rgba(10, 6, 50, 0.85);
+  font-family: "JetBrains Mono", monospace;
+  font-size: var(--fs-md);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.denom--bill[data-denom="500"] { --face: #c9bde8; }
+.denom--bill[data-denom="200"] { --face: #f3c88e; }
+.denom--bill[data-denom="100"] { --face: #9fd0e6; }
+.denom--bill[data-denom="50"] { --face: #f1a9b3; }
+.denom--bill[data-denom="20"] { --face: #a6dca3; }
+/* Monedas: pastilla plateada para distinguirlas de los billetes */
+.denom--coin .denom__face {
+  min-width: calc(var(--px) * 96);
+  border-radius: 999px;
+  background: radial-gradient(circle at 35% 30%, #ffffff, #c9cfe0 75%);
+  color: var(--c-indigo-900);
+  font-size: var(--fs-sm);
+}
+.denom__body { display: grid; gap: calc(var(--px) * 2); justify-items: start; line-height: 1.1; }
+.denom__qty { font-family: "JetBrains Mono", monospace; font-size: var(--fs-md); font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
+.denom__sub { font-family: "JetBrains Mono", monospace; font-size: var(--fs-xs); font-weight: 600; color: var(--c-text-soft); font-variant-numeric: tabular-nums; }
+
+/* Versión compacta (pantalla de entrega): sin subtotal, chips más bajos */
+.denoms--compact { justify-content: flex-start; gap: calc(var(--px) * 10); }
+.denoms--compact .denom { gap: calc(var(--px) * 12); padding: calc(var(--px) * 6) calc(var(--px) * 16) calc(var(--px) * 6) calc(var(--px) * 6); }
+.denoms--compact .denom__face { min-width: calc(var(--px) * 92); height: calc(var(--px) * 44); font-size: var(--fs-sm); }
+.denoms--compact .denom--coin .denom__face { min-width: calc(var(--px) * 72); }
+.denoms--compact .denom__qty { font-size: var(--fs-sm); }
+.denoms--compact .denom__sub { display: none; }
+.denoms__none { font-size: var(--fs-sm); font-weight: 600; color: var(--c-text-soft); }
 
 /* --------------------------------------------------------------------------
    4 · Entrega (billetes → monedas → ticket)
@@ -771,10 +836,14 @@
   .tbl__usd .num, .tbl__mxn .money, .tbl__mxn .money .num { font-size: calc(var(--px) * 60); }
   .tbl__usd small { font-size: calc(var(--px) * 30); }
   .tbl__mxn .money__cur { font-size: calc(var(--px) * 28); }
-  .privacy { gap: calc(var(--px) * 40); padding-top: calc(var(--px) * 36); }
-  .privacy__qr { width: calc(var(--px) * 140); height: calc(var(--px) * 140); }
-  .privacy__line { font-size: calc(var(--px) * 40); }
-  .privacy__more { font-size: calc(var(--px) * 32); }
+  .privacy { gap: calc(var(--px) * 40); padding-top: calc(var(--px) * 40); }
+  .privacy__qr { width: calc(var(--px) * 190); height: calc(var(--px) * 190); }
+  .privacy__line { font-size: calc(var(--px) * 48); }
+  .privacy__more { font-size: calc(var(--px) * 36); }
+  /* Bilingüe (antes de elegir idioma): el texto ocupa más líneas, así que se reduce un poco */
+  .kiosk.is-bilingual .privacy__qr { width: calc(var(--px) * 170); height: calc(var(--px) * 170); }
+  .kiosk.is-bilingual .privacy__line { font-size: calc(var(--px) * 44); }
+  .kiosk.is-bilingual .privacy__more { font-size: calc(var(--px) * 30); }
   /* Idioma en su propia fila, encima del botón principal */
   .kiosk.has-langs .actions { flex-wrap: wrap; }
   .kiosk.has-langs .langs { flex: 1 1 100%; flex-basis: 100%; }
@@ -783,16 +852,26 @@
 
   .ins__head { flex-direction: column; }
   .rate-pill { align-self: flex-start; align-items: flex-start; }
-  .figures { grid-template-columns: 1fr; gap: calc(var(--px) * 10); justify-items: start; }
-  .figures__arrow { transform: rotate(90deg); align-self: center; }
-  .fig__val, .fig__val .money { font-size: var(--fs-n-md); }
-  .fig--hero .fig__val, .fig--hero .fig__val .money { font-size: var(--fs-n-md); }
+  /* Montos en una fila para dejar altura a la animación y a la lista */
+  .figures { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.25fr); gap: calc(var(--px) * 14); align-items: center; }
+  .figures__arrow { transform: none; font-size: calc(var(--px) * 44); }
+  .fig__val, .fig__val .money { font-size: calc(var(--px) * 52); }
+  .fig--hero .fig__val, .fig--hero .fig__val .money { font-size: calc(var(--px) * 60); }
   .fig--hero .fig__val .money__cur { font-size: 0.34em; }
   .cap__lbl { font-size: var(--fs-md); }
   .banner { font-size: var(--fs-md); }
   .ins__body { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
-  .ins__clip { height: calc(var(--px) * 210); --art: calc(var(--px) * 210); }
-  .ins__note { font-size: calc(var(--px) * 38); margin-left: calc(var(--px) * 40); }
+  /* La animación es la protagonista: video grande y centrado, aviso debajo */
+  .ins__clip {
+    height: auto;
+    flex-direction: column;
+    justify-content: center;
+    gap: calc(var(--px) * 18);
+    padding: calc(var(--px) * 28) calc(var(--px) * 28) calc(var(--px) * 24);
+    --art: calc(var(--px) * 380);
+  }
+  .ins__art { position: relative; top: auto; right: auto; transform: none; align-self: center; border-radius: calc(var(--px) * 28); overflow: hidden; }
+  .ins__note { margin: 0; max-width: none; text-align: center; font-size: calc(var(--px) * 36); }
   .bill-row { font-size: var(--fs-md); }
   .bill-row__sub { font-size: var(--fs-lg); }
   .bill { width: calc(var(--px) * 150); height: calc(var(--px) * 70); font-size: var(--fs-md); }
@@ -817,6 +896,16 @@
   .receipt__total { font-size: var(--fs-lg); }
   .receipt__total .money { font-size: calc(var(--px) * 84); }
   .dv__count { font-size: var(--fs-md); }
+  .denoms { gap: calc(var(--px) * 18); }
+  .denom { padding: calc(var(--px) * 14) calc(var(--px) * 28) calc(var(--px) * 14) calc(var(--px) * 14); }
+  .denom__face { min-width: calc(var(--px) * 150); height: calc(var(--px) * 76); font-size: var(--fs-md); }
+  .denom--coin .denom__face { min-width: calc(var(--px) * 120); }
+  .denom__qty { font-size: var(--fs-lg); }
+  .denom__sub { font-size: var(--fs-sm); }
+  .denoms--compact .denom__face { min-width: calc(var(--px) * 120); height: calc(var(--px) * 56); }
+  .denoms--compact .denom--coin .denom__face { min-width: calc(var(--px) * 96); }
+  .denoms--compact .denom__qty { font-size: var(--fs-md); }
+  .denoms__none { font-size: var(--fs-md); }
   .state-icon { width: calc(var(--px) * 200); height: calc(var(--px) * 200); font-size: calc(var(--px) * 96); }
 
   .stepper { }

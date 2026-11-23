@@ -43,7 +43,6 @@
 
   // Centavos MXN. Billetes de 500/200/100/50/20 y monedas de 10/5/2/1 pesos y 50/20/10/5 centavos.
   var BILLS_500 = [50000, 20000, 10000, 5000, 2000];
-  var BILLS_200 = [20000, 10000, 5000, 2000];
   var COINS = [1000, 500, 200, 100, 50, 20, 10, 5];
 
   /* ------------------------------------------------------------------ DOM */
@@ -60,7 +59,6 @@
     lastBill: null,
     notice: null,                // { key, params }
     deal: null,                  // { usd, rate } fijado al entrar a Confirmación
-    use200: false,               // desglose opcional: billetes de $200 en vez de $500
     phase: 0,                    // entrega: 0 billetes · 1 monedas · 2 ticket · 3 listo
     receipt: null,               // { folio, stamp, usd, rate, cents }
     incident: null,              // { folio, stamp, usd, reason }
@@ -94,9 +92,9 @@
   function mxnCents(usd, rc) { return Math.floor(usd * rc / 5) * 5; }
 
   /* Desglose de entrega (billetes y monedas) con algoritmo voraz */
-  function breakdown(cents, use200) {
+  function breakdown(cents) {
     var out = { bills: [], coins: [] }, rem = cents;
-    (use200 ? BILLS_200 : BILLS_500).forEach(function (d) {
+    BILLS_500.forEach(function (d) {
       var n = Math.floor(rem / d);
       if (n) { out.bills.push({ d: d, n: n }); rem -= n * d; }
     });
@@ -106,11 +104,22 @@
     });
     return out;
   }
-  function piecesText(list, coins) {
-    return list.map(function (p) {
-      var v = coins ? nf2.format(p.d / 100) : nf0.format(p.d / 100);
-      return p.n + ' \u00d7 $' + v;
-    }).join(' \u00b7 ');
+  /* Denominaciones a entregar: chips con cara de billete o moneda, cantidad y subtotal.
+     Billetes primero (mayor a menor), luego monedas. */
+  function denomChips(bills, coins) {
+    var items = bills.map(function (p) { return { p: p, coin: false }; })
+      .concat(coins.map(function (p) { return { p: p, coin: true }; }));
+    return items.map(function (it) {
+      var p = it.p;
+      var face = (p.d % 100 === 0) ? nf0.format(p.d / 100) : nf2.format(p.d / 100);
+      var sub = p.d * p.n;
+      var subTxt = (sub % 100 === 0) ? nf0.format(sub / 100) : nf2.format(sub / 100);
+      return '<li class="denom ' + (it.coin ? 'denom--coin' : 'denom--bill') + '"' +
+        (it.coin ? '' : ' data-denom="' + (p.d / 100) + '"') + '>' +
+        '<span class="denom__face">$' + face + '</span>' +
+        '<span class="denom__body"><span class="denom__qty">\u00d7 ' + p.n + '</span>' +
+        '<span class="denom__sub">$' + subTxt + '</span></span></li>';
+    }).join('');
   }
 
   /* Formato de montos: "$" + número mono + moneda */
@@ -179,8 +188,6 @@
     if (!state.lang) setLang('es');
     go('insert');
   }
-  function togglePrefer() { state.use200 = !state.use200; render(); }
-
   function validate() {
     if (insertedUSD() <= 0) return;
     openModal('validating');
@@ -478,12 +485,8 @@
     bindHTML('cf.usd', money(deal.usd * 100, 'USD'));
     bindHTML('cf.mxn', money(cents, 'MXN'));
     bindText('cf.rate', (deal.rate / 100).toFixed(2));
-    bindText('cf.pref', t(state.use200 ? 'confirm.prefer500' : 'confirm.prefer200'));
-    var bd = breakdown(cents, state.use200);
-    var coinsSum = bd.coins.reduce(function (s, p) { return s + p.d * p.n; }, 0);
-    var detail = piecesText(bd.bills, false);
-    if (coinsSum) detail += '  ' + t('confirm.coinsPlus', { amount: '$' + nf2.format(coinsSum / 100) });
-    bindText('cf.billsDetail', detail);
+    var bd = breakdown(cents);
+    bindHTML('cf.denoms', denomChips(bd.bills, bd.coins));
   }
 
   function renderDeliver() {
@@ -494,9 +497,9 @@
     $('[data-bind="dv.spin"]').hidden = done;
     $('[data-bind="dv.ok"]').hidden = !done;
     if (!r) return;
-    var bd = breakdown(r.cents, state.use200);
-    bindText('dv.billsDetail', piecesText(bd.bills, false));
-    bindText('dv.coinsDetail', bd.coins.length ? piecesText(bd.coins, true) : t('deliver.none'));
+    var bd = breakdown(r.cents);
+    bindHTML('dv.billsDetail', denomChips(bd.bills, []));
+    bindHTML('dv.coinsDetail', bd.coins.length ? denomChips([], bd.coins) : '<li class="denoms__none">' + t('deliver.none') + '</li>');
     $$('[data-phase]', kiosk).forEach(function (li) {
       var p = Number(li.dataset.phase);
       var st = done || p < ph ? 'done' : (p === ph ? 'active' : 'todo');
@@ -600,7 +603,6 @@
       return;
     }
     switch (act.dataset.action) {
-      case 'toggle-prefer': togglePrefer(); break;
       case 'cancel-keep': closeModal(); resetIdle(); break;
       case 'cancel-yes': closeModal(); returnOrExit('cancel'); break;
       case 'error-ok': closeModal(); afterFailure(); break;
