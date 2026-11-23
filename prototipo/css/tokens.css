@@ -2,30 +2,26 @@
    MODO · Kiosco de Cambio de Divisas — Tokens de diseño (v2)
    --------------------------------------------------------------------------
    Tipografía:
-     • Inter ............ texto de interfaz (jerarquía con pesos)
+     • Gotham Rounded ... texto de interfaz (marca). Solo los cuatro cortes reales:
+                          Light 300, Book 400, Medium 500, Bold 700.
      • JetBrains Mono ... TODOS los números y montos (ancho fijo, dígitos
                           legibles: 0/8, 1/7, 3/8; no "bailan" al actualizarse)
-     • Nunito ........... solo momentos de marca (logo, bienvenida)
    Los valores de color son planos (hex) para mapear 1:1 a un ResourceDictionary de WPF.
    ========================================================================== */
 
-@font-face { font-family: "Inter"; src: url("../assets/fonts/inter-latin-400-normal.woff2") format("woff2"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "Inter"; src: url("../assets/fonts/inter-latin-500-normal.woff2") format("woff2"); font-weight: 500; font-display: swap; }
-@font-face { font-family: "Inter"; src: url("../assets/fonts/inter-latin-600-normal.woff2") format("woff2"); font-weight: 600; font-display: swap; }
-@font-face { font-family: "Inter"; src: url("../assets/fonts/inter-latin-700-normal.woff2") format("woff2"); font-weight: 700; font-display: swap; }
-@font-face { font-family: "Inter"; src: url("../assets/fonts/inter-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+/* Gotham Rounded no trae Semibold ni ExtraBold: 600 usa Medium y 800/900 usan Bold,
+   para que un peso pedido en CSS nunca se sintetice. */
+@font-face { font-family: "Gotham Rounded"; src: url("../assets/fonts/GothamRounded-Light.otf") format("opentype"); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: "Gotham Rounded"; src: url("../assets/fonts/GothamRounded-Book.otf") format("opentype"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Gotham Rounded"; src: url("../assets/fonts/GothamRounded-Medium.otf") format("opentype"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "Gotham Rounded"; src: url("../assets/fonts/GothamRounded-Medium.otf") format("opentype"); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "Gotham Rounded"; src: url("../assets/fonts/GothamRounded-Bold.otf") format("opentype"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Gotham Rounded"; src: url("../assets/fonts/GothamRounded-Bold.otf") format("opentype"); font-weight: 800; font-style: normal; font-display: swap; }
+@font-face { font-family: "Gotham Rounded"; src: url("../assets/fonts/GothamRounded-Bold.otf") format("opentype"); font-weight: 900; font-style: normal; font-display: swap; }
 
 @font-face { font-family: "JetBrains Mono"; src: url("../assets/fonts/jetbrains-mono-latin-500-normal.woff2") format("woff2"); font-weight: 500; font-display: swap; }
 @font-face { font-family: "JetBrains Mono"; src: url("../assets/fonts/jetbrains-mono-latin-700-normal.woff2") format("woff2"); font-weight: 700; font-display: swap; }
 @font-face { font-family: "JetBrains Mono"; src: url("../assets/fonts/jetbrains-mono-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: swap; }
-
-@font-face {
-  font-family: "Nunito";
-  src: url("../assets/fonts/Nunito.ttf") format("truetype");
-  font-weight: 200 1000;
-  font-style: normal;
-  font-display: swap;
-}
 
 :root {
   /* --- Marca (NO modificar) --- */

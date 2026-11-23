@@ -1,5 +1,5 @@
 /* Panel de revisión — herramienta de diseño, no forma parte del kiosco */
-html, body { margin: 0; height: 100%; background: #0d0a33; font-family: "Inter", "Segoe UI", system-ui, sans-serif; }
+html, body { margin: 0; height: 100%; background: #0d0a33; font-family: "Gotham Rounded", "Segoe UI", system-ui, sans-serif; font-synthesis: none; }
 
 .pv { display: grid; grid-template-columns: 300px minmax(0, 1fr); height: 100vh; color: #e9e8ff; }
 .pv.is-clean { grid-template-columns: minmax(0, 1fr); }
@@ -14,12 +14,12 @@ html, body { margin: 0; height: 100%; background: #0d0a33; font-family: "Inter",
 }
 .pv-brand { display: flex; align-items: center; gap: 12px; }
 .pv-brand img { height: 36px; width: auto; }
-.pv-brand b { display: block; font-size: 16px; font-weight: 900; }
+.pv-brand b { display: block; font-size: 16px; font-weight: 700; }
 .pv-brand span { font-size: 12px; opacity: 0.6; }
 
 .pv-panel section { display: grid; gap: 8px; }
-.pv-panel h4 { margin: 0; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #04cdd8; font-weight: 800; }
-.pv-panel h4 small { text-transform: none; letter-spacing: 0; opacity: 0.6; font-weight: 600; }
+.pv-panel h4 { margin: 0; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #04cdd8; font-weight: 700; }
+.pv-panel h4 small { text-transform: none; letter-spacing: 0; opacity: 0.6; font-weight: 500; }
 
 .pv-seg { display: flex; gap: 6px; }
 .pv-seg--col { flex-direction: column; }
@@ -29,7 +29,7 @@ html, body { margin: 0; height: 100%; background: #0d0a33; font-family: "Inter",
   display: flex; align-items: center; justify-content: space-between; gap: 8px; transition: background 0.15s, border-color 0.15s;
 }
 .pv-seg:not(.pv-seg--col) button { flex: 1; justify-content: center; }
-.pv-seg button small { opacity: 0.6; font-weight: 600; }
+.pv-seg button small { opacity: 0.6; font-weight: 500; }
 .pv-seg button:hover, .pv-btn:hover:not(:disabled), .pv-bill:hover:not(:disabled) { background: rgba(255, 255, 255, 0.12); }
 .pv-seg button.is-active { background: #04cdd8; border-color: #04cdd8; color: #0d0a33; }
 .pv-seg button.is-active small { opacity: 0.7; }
@@ -49,11 +49,11 @@ html, body { margin: 0; height: 100%; background: #0d0a33; font-family: "Inter",
   color: #e9e8ff; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.16);
 }
 .pv-panel select option { color: #111; }
-.pv-check { display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 600; }
+.pv-check { display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 500; }
 .pv-check input { width: 18px; height: 18px; accent-color: #04cdd8; }
 .pv-row { grid-template-columns: 1fr 1fr; }
 .pv-help { margin: 0; font-size: 12px; line-height: 1.5; opacity: 0.55; }
-.pv-help kbd { background: rgba(255, 255, 255, 0.14); padding: 1px 6px; border-radius: 4px; font-family: inherit; font-weight: 800; }
+.pv-help kbd { background: rgba(255, 255, 255, 0.14); padding: 1px 6px; border-radius: 4px; font-family: inherit; font-weight: 700; }
 
 .pv-viewport {
   position: relative; display: grid; place-items: center; overflow: hidden; min-width: 0; min-height: 0;
