@@ -18,13 +18,10 @@
       'rate.capNote': 'Hoy puedes cambiar hasta {max} USD',
       'table.usd': 'USD',
       'table.mxn': 'MXN',
-      'video.label': 'Cómo insertar tu dinero',
-      'video.placeholder': 'Video en loop · marcador de posición',
       'video.caption': 'Todo lo que ingreses será cambiado a pesos',
       'lang.prompt': 'Elige tu idioma',
       'privacy.line': 'Al continuar aceptas el aviso de privacidad',
       'privacy.qr': 'Aviso completo',
-      'privacy.check': 'Acepto el aviso de privacidad',
       'btn.start': 'Aceptar y comenzar',
 
       /* Fuera de servicio (improvisado) */
@@ -124,13 +121,10 @@
       'rate.capNote': 'Today you can exchange up to {max} USD',
       'table.usd': 'USD',
       'table.mxn': 'MXN',
-      'video.label': 'How to insert your cash',
-      'video.placeholder': 'Looping video · placeholder',
       'video.caption': 'Everything you insert will be exchanged for pesos',
       'lang.prompt': 'Choose your language',
       'privacy.line': 'By continuing you accept the privacy notice',
       'privacy.qr': 'Full notice',
-      'privacy.check': 'I accept the privacy notice',
       'btn.start': 'Accept and start',
 
       'oos.title': 'Kiosk out of service',

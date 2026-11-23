@@ -101,7 +101,6 @@
       <label class="pv-check"><input type="checkbox" id="pvFee" checked> Mostrar “Sin comisión”</label>
       <label class="pv-check"><input type="checkbox" id="pvDynCap"> Tope dinámico (300 USD)</label>
       <label class="pv-check"><input type="checkbox" id="pvEscrow" checked> Receptor con escrow (cancelar)</label>
-      <label class="pv-check"><input type="checkbox" id="pvPriv"> Casilla extra de privacidad</label>
       <label class="pv-check"><input type="checkbox" id="pvOos"> Kiosco fuera de servicio</label>
     </section>
 
@@ -176,29 +175,11 @@
                 </div>
               </div>
 
-              <figure class="video">
-                <div class="video__stage" aria-hidden="true">
-                  <div class="acceptor acceptor--video">
-                    <div class="acceptor__bill"></div>
-                    <div class="acceptor__slot"></div>
-                  </div>
-                </div>
-                <figcaption class="video__cap">
-                  <span class="video__label" data-i18n="video.label"></span>
-                  <span class="video__caption" data-i18n="video.caption"></span>
-                </figcaption>
-                <span class="video__tag" data-i18n="video.placeholder"></span>
-              </figure>
-
               <div class="privacy">
                 <img class="privacy__qr" src="assets/img/qr-privacidad.svg" alt="">
                 <div class="privacy__text">
                   <p class="privacy__line" data-i18n="privacy.line"></p>
                   <p class="privacy__more"><span data-i18n="privacy.qr"></span> <b>modo.exchange/privacy</b></p>
-                  <label class="privacy__check" data-bind="priv.check" hidden>
-                    <input type="checkbox" id="privacyCheck">
-                    <span data-i18n="privacy.check"></span>
-                  </label>
                 </div>
               </div>
             </section>
@@ -238,11 +219,10 @@
 
               <div class="ins__body">
                 <div class="ins__clip">
-                  <div class="acceptor" aria-hidden="true">
-                    <div class="acceptor__bill"></div>
-                    <div class="acceptor__slot"></div>
-                  </div>
                   <p class="ins__note" data-i18n="video.caption"></p>
+                  <div class="ins__art" aria-hidden="true">
+                    <video src="assets/video/cash-in.mp4" autoplay muted loop playsinline></video>
+                  </div>
                 </div>
 
                 <div class="bill-feed is-empty" data-bind="ins.feed">

@@ -2,7 +2,7 @@
    MODO · Kiosco de Cambio de Divisas — Lógica del prototipo (v2)
    --------------------------------------------------------------------------
    Flujo de 4 pantallas (según "Observaciones de la prueba", 14-nov-2026):
-     1 · start    Inicio: tipo de cambio, tabla, video, idioma y privacidad
+     1 · start    Inicio: tipo de cambio, tabla, idioma y privacidad
      2 · insert   Inserta tus dólares (contador en vivo, tope, rechazos)
      3 · confirm  Confirmación (tipo de cambio fijado; Cancelar solo con escrow)
      4 · deliver  Entrega: billetes → monedas → ticket
@@ -24,7 +24,6 @@
     dynamicCapUSD: 300,
     denominations: [1, 2, 5, 10, 20, 50, 100],   // billetes USD aceptados
     escrow: true,                // [SUPUESTO] receptor con escrow (pendiente de hardware)
-    privacyCheck: false,         // casilla adicional de privacidad (pendiente de Legal)
     outOfService: false,
     failInventory: false,        // simula error de inventario al validar
     failDelivery: false,         // simula falla después de recibir el dinero
@@ -57,7 +56,6 @@
   var state = {
     screen: 'start',
     lang: null,                  // null = bilingüe (ES + EN) hasta elegir bandera
-    privacyOk: false,
     bills: {},                   // { denominación USD: cantidad }
     lastBill: null,
     notice: null,                // { key, params }
@@ -178,7 +176,6 @@
 
   /* ------------------------------------------------------------------ Acciones de pantalla */
   function startSession() {
-    if (CONFIG.privacyCheck && !state.privacyOk) return;
     if (!state.lang) setLang('es');
     go('insert');
   }
@@ -274,11 +271,11 @@
   var SCREENS = {
     start: {
       step: 0,
-      onEnter: function () { resetSession(); state.privacyOk = false; },
+      onEnter: function () { resetSession(); },
       actions: function () {
         return {
           secondary: null,
-          primary: { key: 'btn.start', variant: 'cyan', enabled: !CONFIG.privacyCheck || state.privacyOk, onClick: startSession }
+          primary: { key: 'btn.start', variant: 'cyan', onClick: startSession }
         };
       }
     },
@@ -436,9 +433,6 @@
         '<span class="tbl__arrow" aria-hidden="true">\u2192</span>' +
         '<span class="tbl__mxn">' + money(mxnCents(usd, rc), 'MXN') + '</span></li>';
     }).join(''));
-    bindHidden('priv.check', !CONFIG.privacyCheck);
-    var chk = $('#privacyCheck');
-    if (chk) chk.checked = state.privacyOk;
     $$('[data-lang]', $('#langGroup')).forEach(function (b) {
       b.classList.toggle('is-active', b.dataset.lang === state.lang);
     });
@@ -457,8 +451,13 @@
     if (bar) bar.style.width = Math.min(100, (ins / cap) * 100) + '%';
     bindHidden('ins.banner', !locked);
     bindHTML('ins.banner', tHTML('insert.capReached', { max: nf0.format(cap) }));
-    $('[data-id="insert"] .acceptor').classList.toggle('is-locked', locked);
     $('[data-id="insert"]').classList.toggle('is-locked', locked);
+    // Receptor bloqueado (tope alcanzado): el clip se detiene y se apaga; se reanuda al desbloquear
+    var clip = $('[data-id="insert"] .ins__art video');
+    if (clip) {
+      if (locked) clip.pause();
+      else if (clip.paused) { var pr = clip.play(); if (pr && pr.catch) pr.catch(function () {}); }
+    }
     var dens = Object.keys(state.bills).map(Number).sort(function (x, y) { return y - x; });
     $('[data-bind="ins.feed"]').classList.toggle('is-empty', dens.length === 0);
     bindHTML('ins.list', dens.map(function (d) {
@@ -557,7 +556,6 @@
   function jump(id) {
     clearFlowTimers(); stopIdleCountdown(); closeModal();
     resetSession();
-    privacyFix();
     // Fuera del inicio el idioma ya está elegido: se usa español si el panel no lo fijó
     if (id !== 'start' && !state.lang) setLang('es');
     switch (id) {
@@ -579,7 +577,6 @@
       default: go('start');
     }
   }
-  function privacyFix() { state.privacyOk = false; }
 
   /* ------------------------------------------------------------------ Controles del panel */
   function setRate(v) {
@@ -608,13 +605,6 @@
       case 'cancel-yes': closeModal(); returnOrExit('cancel'); break;
       case 'error-ok': closeModal(); afterFailure(); break;
       case 'idle-ok': stopIdleCountdown(); closeModal(); resetIdle(); break;
-    }
-  });
-
-  kiosk.addEventListener('change', function (e) {
-    if (e.target && e.target.id === 'privacyCheck') {
-      state.privacyOk = e.target.checked;
-      render();
     }
   });
 

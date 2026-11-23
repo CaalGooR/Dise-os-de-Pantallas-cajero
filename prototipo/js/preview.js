@@ -133,7 +133,6 @@
   bindCheck('pvFee', function (on) { K.CONFIG.feeFree = on; K.render(); });
   bindCheck('pvDynCap', function (on) { K.CONFIG.dynamicCap = on; K.render(); });
   bindCheck('pvEscrow', function (on) { K.CONFIG.escrow = on; K.render(); });
-  bindCheck('pvPriv', function (on) { K.CONFIG.privacyCheck = on; K.render(); });
   bindCheck('pvOos', function (on) { K.setOutOfService(on); });
 
   /* ---------------------------------------------------------------- Fallas y estados */
