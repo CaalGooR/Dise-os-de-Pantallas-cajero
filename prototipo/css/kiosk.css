@@ -148,6 +148,9 @@
    -------------------------------------------------------------------------- */
 .topbar { grid-row: 1; display: flex; align-items: center; justify-content: space-between; min-height: var(--logo-h); }
 .topbar__logo { height: var(--logo-h); width: auto; display: block; }
+/* En inicio el kiosco no tiene padding (para que los idiomas vayan a sangre),
+   así que la barra superior conserva el margen original del logo y la fecha */
+.kiosk.has-langs .topbar { padding: var(--pad-y) var(--pad-x) 0; }
 .clock { text-align: right; line-height: 1.05; }
 .clock__date { font-size: var(--fs-xs); font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-text-soft); }
 .clock__time { font-family: "JetBrains Mono", monospace; font-size: var(--fs-md); font-weight: 700; font-variant-numeric: tabular-nums; margin-top: calc(var(--px) * 4); }
@@ -283,8 +286,18 @@
 .kiosk.has-langs .langs { display: contents; }
 .kiosk.has-langs #btnSecondary { display: none; }
 .kiosk.has-langs .lang { flex: 0 0 calc(var(--px) * 300); }
-/* Los idiomas se pegan a las orillas del kiosco (el pie ocupa el ancho del padding) */
-.kiosk.has-langs .actions { width: calc(100% + var(--pad-x) * 2); margin: 0 calc(var(--pad-x) * -1); }
+/* Inicio a sangre (sin padding): logo y fecha pegados a las orillas superiores,
+   botones de idioma pegados a los lados y al borde inferior. Solo el contenido
+   central conserva su margen interno para que el texto respire. */
+.kiosk.has-langs { padding: 0; }
+.kiosk.has-langs .content { padding: 0 var(--pad-x); }
+.kiosk.has-langs .actions { width: 100%; margin: 0; gap: calc(var(--px) * 16); }
+/* Botones del pie: pegados al borde inferior, sin redondeo abajo.
+   Cada idioma, además, queda cuadrado del lado de la pantalla al que está pegado. */
+.kiosk.has-langs .actions .btn,
+.kiosk.has-langs .actions .lang { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.kiosk.has-langs .lang[data-lang="es"] { border-top-left-radius: 0; border-left-width: 0; }
+.kiosk.has-langs .lang[data-lang="en"] { border-top-right-radius: 0; border-right-width: 0; }
 .kiosk.has-langs .lang[data-lang="es"] { order: 0; }
 .kiosk.has-langs #btnPrimary { order: 1; }
 .kiosk.has-langs .lang[data-lang="en"] { order: 2; }
@@ -894,12 +907,11 @@
   .kiosk.is-bilingual .privacy__qr { width: calc(var(--px) * 170); height: calc(var(--px) * 170); }
   .kiosk.is-bilingual .privacy__line { font-size: calc(var(--px) * 44); }
   .kiosk.is-bilingual .privacy__more { font-size: calc(var(--px) * 30); }
-  /* Idioma en su propia fila, encima del botón principal */
-  .kiosk.has-langs .actions { flex-wrap: wrap; }
-  .kiosk.has-langs .langs { flex: 1 1 100%; flex-basis: 100%; }
-  .kiosk.has-langs #btnPrimary { flex: 1 1 100%; }
+  /* Pie de inicio: Español | Aceptar y comenzar | English en una sola fila a sangre */
+  .kiosk.has-langs .actions { flex-wrap: nowrap; }
+  .kiosk.has-langs #btnPrimary { flex: 1 1 0; }
   .lang { font-size: var(--fs-md); min-height: calc(var(--px) * 88); }
-  .kiosk.has-langs .lang { flex: 0 1 calc(var(--px) * 200); min-width: 0; padding: 0 calc(var(--px) * 6); gap: calc(var(--px) * 8); font-size: calc(var(--px) * 36); }
+  .kiosk.has-langs .lang { flex: 0 0 calc(var(--px) * 230); min-width: 0; padding: 0 calc(var(--px) * 6); gap: calc(var(--px) * 8); font-size: calc(var(--px) * 36); }
   .kiosk.has-langs #btnPrimary { min-width: 0; }
   .kiosk.has-langs #btnPrimary .btn__label { font-size: calc(var(--px) * 40); white-space: nowrap; }
 

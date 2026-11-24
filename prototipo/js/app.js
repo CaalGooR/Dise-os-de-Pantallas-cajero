@@ -42,10 +42,6 @@
   var PREVIEW_AMOUNTS = [20, 100, 500, 800];   // tabla de equivalencias (documento)
   var USD_BILL_LABEL = function (d) { return '$' + d; };
 
-  // Centavos MXN. Billetes de 500/200/100/50/20 y monedas de 10/5/2/1 pesos y 50/20/10/5 centavos.
-  var BILLS_500 = [50000, 20000, 10000, 5000, 2000];
-  var COINS = [1000, 500, 200, 100, 50, 20, 10, 5];
-
   /* ------------------------------------------------------------------ DOM */
   var kiosk = document.getElementById('kiosk');
   var modalLayer = document.getElementById('modalLayer');
@@ -91,37 +87,6 @@
   /* [SUPUESTO] Centavos: no hay monedas de 1 ni 2 centavos, así que el monto en MXN
      se redondea hacia abajo a múltiplos de 5 centavos (a favor del kiosco). */
   function mxnCents(usd, rc) { return Math.floor(usd * rc / 5) * 5; }
-
-  /* Desglose de entrega (billetes y monedas) con algoritmo voraz */
-  function breakdown(cents) {
-    var out = { bills: [], coins: [] }, rem = cents;
-    BILLS_500.forEach(function (d) {
-      var n = Math.floor(rem / d);
-      if (n) { out.bills.push({ d: d, n: n }); rem -= n * d; }
-    });
-    COINS.forEach(function (d) {
-      var n = Math.floor(rem / d);
-      if (n) { out.coins.push({ d: d, n: n }); rem -= n * d; }
-    });
-    return out;
-  }
-  /* Denominaciones a entregar: chips con cara de billete o moneda, cantidad y subtotal.
-     Billetes primero (mayor a menor), luego monedas. */
-  function denomChips(bills, coins) {
-    var items = bills.map(function (p) { return { p: p, coin: false }; })
-      .concat(coins.map(function (p) { return { p: p, coin: true }; }));
-    return items.map(function (it) {
-      var p = it.p;
-      var face = (p.d % 100 === 0) ? nf0.format(p.d / 100) : nf2.format(p.d / 100);
-      var sub = p.d * p.n;
-      var subTxt = (sub % 100 === 0) ? nf0.format(sub / 100) : nf2.format(sub / 100);
-      return '<li class="denom ' + (it.coin ? 'denom--coin' : 'denom--bill') + '"' +
-        (it.coin ? '' : ' data-denom="' + (p.d / 100) + '"') + '>' +
-        '<span class="denom__face">$' + face + '</span>' +
-        '<span class="denom__body"><span class="denom__qty">\u00d7 ' + p.n + '</span>' +
-        '<span class="denom__sub">$' + subTxt + '</span></span></li>';
-    }).join('');
-  }
 
   /* Formato de montos: "$" + número mono + moneda */
   function money(cents, cur) {
@@ -491,8 +456,6 @@
     bindHTML('cf.usd', money(deal.usd * 100, 'USD'));
     bindHTML('cf.mxn', money(cents, 'MXN'));
     bindText('cf.rate', (deal.rate / 100).toFixed(2));
-    var bd = breakdown(cents);
-    bindHTML('cf.denoms', denomChips(bd.bills, bd.coins));
   }
 
   function renderDeliver() {
@@ -503,9 +466,6 @@
     $('[data-bind="dv.spin"]').hidden = done;
     $('[data-bind="dv.ok"]').hidden = !done;
     if (!r) return;
-    var bd = breakdown(r.cents);
-    bindHTML('dv.billsDetail', denomChips(bd.bills, []));
-    bindHTML('dv.coinsDetail', bd.coins.length ? denomChips([], bd.coins) : '<li class="denoms__none">' + t('deliver.none') + '</li>');
     $$('[data-phase]', kiosk).forEach(function (li) {
       var p = Number(li.dataset.phase);
       var st = done || p < ph ? 'done' : (p === ph ? 'active' : 'todo');
