@@ -18,7 +18,6 @@
       'rate.capNote': 'Hoy puedes cambiar hasta {max} USD',
       'table.usd': 'USD',
       'table.mxn': 'MXN',
-      'video.caption': 'Todo lo que ingreses será cambiado a pesos',
       'lang.prompt': 'Elige tu idioma',
       'privacy.line': 'Por razones de cumplimiento, este kiosco captura una imagen de su rostro en cada transacción, solo para aplicar los límites diarios y prevenir el uso indebido. <b>Al continuar, usted consiente esta recopilación y uso.</b>',
       'privacy.qr': 'Aviso de privacidad completo:',
@@ -29,7 +28,7 @@
 
       /* 2 · Inserta tus dólares */
       'insert.title': 'Inserta tus dólares',
-      'insert.sub': 'Máximo 20 billetes por conteo',
+      'insert.sub': 'Máximo <b>20</b> billetes por fajilla',
       'insert.entered': 'Has ingresado',
       'insert.receive': 'Recibirás',
       'insert.limit': 'Tope de {max} USD',
@@ -55,6 +54,18 @@
       'confirm.rate': 'Tipo de cambio aplicado',
       'btn.confirm': 'Confirmar',
       'btn.cancel': 'Cancelar',
+      'confirm.exchange': 'Cambiarás',
+      'confirm.change': 'Te devolveremos <b>${n} USD</b> de cambio',
+      /* Ajustar monto (cambiar solo una parte) */
+      'adjust.cta': 'Cambiar solo una parte',
+      'adjust.ctaHint': 'Ajusta el monto y te devolvemos el resto en dólares',
+      'adjust.title': '¿Cuánto quieres cambiar?',
+      'adjust.inserted': 'Ingresaste ${n} USD',
+      'adjust.all': 'Todo',
+      'adjust.receive': 'Recibirás',
+      'adjust.change': 'Te devolveremos <b>${n} USD</b>',
+      'adjust.apply': 'Aplicar',
+      'adjust.cancel': 'Volver',
 
       /* 4 · Entrega */
       'deliver.title': 'Entregando tu efectivo',
@@ -71,6 +82,8 @@
       'receipt.date': 'Fecha y hora',
       'receipt.usd': 'Monto USD',
       'receipt.rate': 'Tipo de cambio',
+      'receipt.change': 'Cambio en USD',
+      'deliver.change': 'Retira también tu cambio: ${n} USD',
 
       /* Incidencia (improvisado): falla después de recibir dinero */
       'incident.title': 'No pudimos entregar tu efectivo',
@@ -117,7 +130,6 @@
       'rate.capNote': 'Today you can exchange up to {max} USD',
       'table.usd': 'USD',
       'table.mxn': 'MXN',
-      'video.caption': 'Everything you insert will be exchanged for pesos',
       'lang.prompt': 'Choose your language',
       'privacy.line': 'For compliance purposes, this kiosk captures an image of your face during each transaction, solely to enforce daily limits and prevent misuse. <b>By continuing, you consent to this collection and use.</b>',
       'privacy.qr': 'Full privacy notice:',
@@ -126,7 +138,7 @@
       'oos.text': 'Sorry for the inconvenience. Please visit the counter to exchange your dollars.',
 
       'insert.title': 'Insert your dollars',
-      'insert.sub': 'Up to 20 bills per count',
+      'insert.sub': 'Up to <b>20</b> bills per bundle',
       'insert.entered': 'You have inserted',
       'insert.receive': 'You will receive',
       'insert.limit': '{max} USD limit',
@@ -150,6 +162,17 @@
       'confirm.rate': 'Applied exchange rate',
       'btn.confirm': 'Confirm',
       'btn.cancel': 'Cancel',
+      'confirm.exchange': 'You will exchange',
+      'confirm.change': 'We will return <b>${n} USD</b> in change',
+      'adjust.cta': 'Exchange only part',
+      'adjust.ctaHint': 'Adjust the amount and we return the rest in dollars',
+      'adjust.title': 'How much do you want to exchange?',
+      'adjust.inserted': 'You inserted ${n} USD',
+      'adjust.all': 'All',
+      'adjust.receive': 'You will receive',
+      'adjust.change': 'We will return <b>${n} USD</b>',
+      'adjust.apply': 'Apply',
+      'adjust.cancel': 'Back',
 
       'deliver.title': 'Dispensing your cash',
       'deliver.bills': 'Take your bills',
@@ -165,6 +188,8 @@
       'receipt.date': 'Date and time',
       'receipt.usd': 'Amount USD',
       'receipt.rate': 'Exchange rate',
+      'receipt.change': 'Change in USD',
+      'deliver.change': 'Also take your change: ${n} USD',
 
       'incident.title': 'We couldn\u2019t dispense your cash',
       'incident.text': 'Keep your incident receipt. We will refund you when you contact us.',

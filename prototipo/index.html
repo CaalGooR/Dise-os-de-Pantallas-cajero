@@ -53,6 +53,9 @@
     <symbol id="i-x-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></symbol>
     <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol>
     <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M1 14h6"/><path d="M9 8h6"/><path d="M17 16h6"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
   </g>
 </svg>
 
@@ -153,13 +156,6 @@
             <button class="lang" type="button" data-lang="en" aria-label="English"><svg class="flag"><use href="#flag-us"/></svg><span>EN</span></button>
           </div>
 
-          <ol class="stepper" id="stepper" hidden>
-            <li class="step" data-step="1"><span class="step__dot"></span><span class="step__label" data-i18n="step.start"></span></li>
-            <li class="step" data-step="2"><span class="step__dot"></span><span class="step__label" data-i18n="step.bills"></span></li>
-            <li class="step" data-step="3"><span class="step__dot"></span><span class="step__label" data-i18n="step.confirm"></span></li>
-            <li class="step" data-step="4"><span class="step__dot"></span><span class="step__label" data-i18n="step.delivery"></span></li>
-          </ol>
-
           <div class="content">
 
             <!-- ── 1 · Inicio: espera + tipo de cambio + idioma + privacidad ── -->
@@ -200,11 +196,6 @@
                   <h2 class="title" data-i18n="insert.title"></h2>
                   <p class="sub" data-i18n="insert.sub"></p>
                 </div>
-                <div class="rate-pill">
-                  <span class="rate-pill__lbl" data-i18n="insert.rateLine"></span>
-                  <span class="num rate-pill__val" data-bind="ins.rate"></span>
-                  <span class="rate-pill__cur">MXN / USD</span>
-                </div>
               </header>
 
               <div class="figures">
@@ -220,27 +211,28 @@
               </div>
 
               <div class="cap">
+                <div class="cap__row">
+                  <span class="cap__rate" role="img" aria-label="1 USD = MXN">
+                    <svg class="flag"><use href="#flag-us"/></svg><b>$1 USD</b>
+                    <span class="cap__eq">=</span>
+                    <svg class="flag"><use href="#flag-mx"/></svg><b>$<span data-bind="ins.rate"></span> MXN</b>
+                  </span>
+                  <span class="cap__lbl" data-bind="ins.limit"></span>
+                </div>
                 <div class="cap__track"><span class="cap__fill" data-bind="ins.bar"></span></div>
-                <span class="cap__lbl" data-bind="ins.limit"></span>
               </div>
 
               <p class="banner" data-bind="ins.banner" hidden></p>
 
               <div class="ins__body">
+                <div class="notice" data-bind="notice" hidden role="alert">
+                  <svg class="icon"><use href="#i-alert"/></svg>
+                  <span data-bind="notice.text"></span>
+                </div>
                 <div class="ins__clip">
-                  <p class="ins__note" data-i18n="video.caption"></p>
                   <div class="ins__art" aria-hidden="true">
                     <video src="assets/video/cash-in.mp4" autoplay muted loop playsinline></video>
                   </div>
-                </div>
-
-                <div class="bill-feed is-empty" data-bind="ins.feed">
-                  <div class="notice" data-bind="notice" hidden role="alert">
-                    <svg class="icon"><use href="#i-alert"/></svg>
-                    <span data-bind="notice.text"></span>
-                  </div>
-                  <div class="bill-empty"><p data-i18n="insert.empty"></p></div>
-                  <ul class="bill-list" data-bind="ins.list"></ul>
                 </div>
               </div>
             </section>
@@ -250,8 +242,9 @@
               <h2 class="title title--center" data-i18n="confirm.title"></h2>
 
               <div class="cf__usd">
-                <span class="cf__lbl" data-i18n="confirm.inserted"></span>
+                <span class="cf__lbl" data-bind="cf.lbl"></span>
                 <span class="cf__val" data-bind="cf.usd"></span>
+                <p class="sub cf__change" data-bind="cf.change" hidden></p>
               </div>
 
               <div class="cf__hero">
@@ -264,6 +257,16 @@
                 <span class="num rate-pill__val" data-bind="cf.rate"></span>
                 <span class="rate-pill__cur">MXN / USD</span>
               </div>
+
+              <!-- Ajustar monto: opción visible, no escondida -->
+              <button class="adjust-cta" type="button" data-action="adjust-open">
+                <span class="adjust-cta__icon"><svg class="icon"><use href="#i-sliders"/></svg></span>
+                <span class="adjust-cta__txt">
+                  <b data-i18n="adjust.cta"></b>
+                  <small data-i18n="adjust.ctaHint"></small>
+                </span>
+                <svg class="icon adjust-cta__go" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+              </button>
             </section>
 
             <!-- ── 4 · Entrega: billetes → monedas → ticket ── -->
@@ -279,6 +282,7 @@
                   <span class="dv__dot"></span>
                   <div class="dv__txt">
                     <b data-i18n="deliver.bills"></b>
+                    <small data-bind="dv.change" hidden></small>
                   </div>
                 </li>
                 <li class="dv__step" data-phase="1">
@@ -300,6 +304,7 @@
                 <div class="receipt__row"><span data-i18n="receipt.folio"></span><b class="num" data-bind="dv.folio"></b></div>
                 <div class="receipt__row"><span data-i18n="receipt.date"></span><b class="num" data-bind="dv.date"></b></div>
                 <div class="receipt__row"><span data-i18n="receipt.usd"></span><span class="num" data-bind="dv.usd"></span></div>
+                <div class="receipt__row" data-bind="dv.changeRow" hidden><span data-i18n="receipt.change"></span><span class="num" data-bind="dv.changeVal"></span></div>
                 <div class="receipt__row"><span data-i18n="receipt.rate"></span><span class="num" data-bind="dv.rate"></span></div>
                 <div class="receipt__total"><span data-i18n="deliver.delivered"></span><span class="num" data-bind="dv.mxn"></span></div>
               </div>
@@ -341,6 +346,32 @@
               <div class="spinner"></div>
               <h3 class="modal__title" data-i18n="validating.title"></h3>
               <p class="modal__text" data-i18n="validating.text"></p>
+            </div>
+
+            <!-- Ajustar monto: cambiar solo una parte; el resto se devuelve en dólares -->
+            <div class="modal modal--adjust" data-modal-id="adjust" role="dialog">
+              <h3 class="modal__title" data-i18n="adjust.title"></h3>
+              <p class="modal__text" data-bind="adj.sub"></p>
+              <div class="adj">
+                <div class="adj__row">
+                  <button class="adj__btn" type="button" data-action="adj-minus" aria-label="−"><svg class="icon"><use href="#i-minus"/></svg></button>
+                  <div class="adj__val" data-bind="adj.usd"></div>
+                  <button class="adj__btn" type="button" data-action="adj-plus" aria-label="+"><svg class="icon"><use href="#i-plus"/></svg></button>
+                </div>
+                <div class="adj__chips">
+                  <button class="adj__chip" type="button" data-action="adj-all" data-i18n="adjust.all"></button>
+                  <button class="adj__chip" type="button" data-action="adj-m50">−$50</button>
+                  <button class="adj__chip" type="button" data-action="adj-m100">−$100</button>
+                </div>
+                <div class="adj__sum">
+                  <div class="adj__recv"><span class="adj__lbl" data-i18n="adjust.receive"></span><span data-bind="adj.mxn"></span></div>
+                  <p class="adj__change" data-bind="adj.change" hidden></p>
+                </div>
+              </div>
+              <div class="modal__actions">
+                <button class="btn btn--light btn--modal" type="button" data-action="adj-cancel"><span class="btn__label" data-i18n="adjust.cancel"></span></button>
+                <button class="btn btn--cyan btn--modal" type="button" data-action="adj-apply"><span class="btn__label" data-i18n="adjust.apply"></span></button>
+              </div>
             </div>
 
             <div class="modal" data-modal-id="cancel" role="alertdialog">

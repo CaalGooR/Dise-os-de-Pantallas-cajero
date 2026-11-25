@@ -23,6 +23,7 @@
     capUSD: 800,                 // tope fijo por operación (documento)
     dynamicCap: false,           // tope dinámico (inventario bajo)
     dynamicCapUSD: 300,
+    adjustStep: 10,              // [SUPUESTO] paso del ajuste de monto (USD); el cambio sale de los billetes ingresados
     denominations: [1, 2, 5, 10, 20, 50, 100],   // billetes USD aceptados
     escrow: true,                // [SUPUESTO] receptor con escrow (pendiente de hardware)
     outOfService: false,
@@ -55,7 +56,8 @@
     bills: {},                   // { denominación USD: cantidad }
     lastBill: null,
     notice: null,                // { key, params }
-    deal: null,                  // { usd, rate } fijado al entrar a Confirmación
+    deal: null,                  // { inserted, usd (a cambiar), rate } fijado al entrar a Confirmación
+    adjust: null,                // { usd } mientras el modal de ajuste está abierto
     phase: 0,                    // entrega: 0 billetes · 1 monedas · 2 ticket · 3 listo
     receipt: null,               // { folio, stamp, usd, rate, cents }
     incident: null,              // { folio, stamp, usd, reason }
@@ -141,7 +143,7 @@
   /* ------------------------------------------------------------------ Sesión */
   function resetSession() {
     state.bills = {}; state.lastBill = null; state.notice = null;
-    state.deal = null; state.phase = 0; state.receipt = null; state.incident = null;
+    state.deal = null; state.adjust = null; state.phase = 0; state.receipt = null; state.incident = null;
   }
 
   /* Fin de la sesión: el siguiente cliente empieza de nuevo, en español por defecto */
@@ -172,6 +174,25 @@
   function cancelInsert() {
     if (insertedUSD() > 0) openModal('cancel');
     else { clearFlowTimers(); endFlow(); }
+  }
+
+  /* Ajustar monto: el cliente cambia solo una parte; lo demás vuelve en dólares */
+  function openAdjust(opts) {
+    if (!state.deal) return;
+    state.adjust = { usd: opts && opts.usd != null ? opts.usd : state.deal.usd };
+    renderAdjust();
+    openModal('adjust', opts);
+  }
+  function adjustTo(v) {
+    if (!state.adjust || !state.deal) return;
+    state.adjust.usd = Math.max(1, Math.min(state.deal.inserted, v));
+    renderAdjust();
+  }
+  function applyAdjust() {
+    if (state.adjust && state.deal) state.deal.usd = state.adjust.usd;
+    closeModal();
+    render();
+    resetIdle();
   }
 
   function requestCancel() {
@@ -218,6 +239,7 @@
       folio: 'MO101030' + randDigits(6),
       stamp: nowStamp(),
       usd: deal.usd,
+      change: Math.max(0, (deal.inserted || deal.usd) - deal.usd),
       rate: deal.rate,
       cents: cents
     };
@@ -254,7 +276,6 @@
   /* ------------------------------------------------------------------ Definición de pantallas */
   var SCREENS = {
     start: {
-      step: 0,
       onEnter: function () { resetSession(); },
       actions: function () {
         return {
@@ -264,7 +285,6 @@
       }
     },
     insert: {
-      step: 2,
       onEnter: function () { state.deal = null; },
       actions: function () {
         return {
@@ -274,17 +294,15 @@
       }
     },
     confirm: {
-      step: 3,
-      onEnter: function () { state.deal = { usd: insertedUSD(), rate: rateCents() }; },   // tipo de cambio fijado
+      onEnter: function () { state.deal = { inserted: insertedUSD(), usd: insertedUSD(), rate: rateCents() }; },   // tipo de cambio fijado
       actions: function () {
         return {
-          secondary: CONFIG.escrow ? { key: 'btn.cancel', variant: 'ghost', onClick: requestCancel } : null,
+          secondary: CONFIG.escrow ? { key: 'btn.cancel', variant: 'danger', onClick: requestCancel } : null,
           primary: { key: 'btn.confirm', variant: 'cyan', onClick: function () { go('deliver'); } }
         };
       }
     },
     deliver: {
-      step: 4,
       onEnter: function (opts) { startDeliver(opts); },
       actions: function () {
         return {
@@ -294,13 +312,11 @@
       }
     },
     incident: {
-      step: 4,
       actions: function () {
         return { secondary: null, primary: { key: 'deliver.done', variant: 'cyan', onClick: finish } };
       }
     },
     oos: {
-      step: 0,
       actions: function () { return { secondary: null, primary: null }; }
     }
   };
@@ -313,7 +329,6 @@
     kiosk.dataset.screen = screen;
     $$('.screen').forEach(function (s) { s.classList.toggle('is-active', s.dataset.id === screen); });
     var def = SCREENS[screen];
-    $('#stepper').hidden = !def.step;
     if (def.onEnter) def.onEnter(opts);
     render();
     resetIdle();
@@ -396,16 +411,6 @@
     btn.onclick = cfg.onClick;
   }
 
-  function renderStepper() {
-    var cur = SCREENS[state.screen].step;
-    $$('.step').forEach(function (li) {
-      var n = Number(li.dataset.step);
-      var st = n < cur ? 'done' : (n === cur ? 'active' : 'todo');
-      li.dataset.state = st;
-      li.querySelector('.step__dot').innerHTML = st === 'done' ? '<svg class="icon"><use href="#i-check"/></svg>' : String(n);
-    });
-  }
-
   function renderStart() {
     var rc = rateCents();
     bindText('rate', (rc / 100).toFixed(2));
@@ -443,26 +448,35 @@
       if (locked) clip.pause();
       else if (clip.paused) { var pr = clip.play(); if (pr && pr.catch) pr.catch(function () {}); }
     }
-    var dens = Object.keys(state.bills).map(Number).sort(function (x, y) { return y - x; });
-    $('[data-bind="ins.feed"]').classList.toggle('is-empty', dens.length === 0);
-    bindHTML('ins.list', dens.map(function (d) {
-      var c = state.bills[d];
-      return '<li class="bill-row' + (state.lastBill === d ? ' is-new' : '') + '">' +
-        '<span class="bill" data-denom="' + d + '"><b>' + USD_BILL_LABEL(d) + '</b></span>' +
-        '<span class="bill-row__qty">\u00d7 ' + c + '</span>' +
-        '<span class="bill-row__sub num">' + nf0.format(d * c) + '</span></li>';
-    }).join(''));
     var notice = $('[data-bind="notice"]');
     notice.hidden = !state.notice;
     if (state.notice) bindHTML('notice.text', tHTML(state.notice.key, state.notice.params));
   }
 
   function renderConfirm() {
-    var deal = state.deal || { usd: insertedUSD(), rate: rateCents() };
+    var deal = state.deal || { inserted: insertedUSD(), usd: insertedUSD(), rate: rateCents() };
     var cents = mxnCents(deal.usd, deal.rate);
+    var change = (deal.inserted || deal.usd) - deal.usd;
+    bindText('cf.lbl', t(change > 0 ? 'confirm.exchange' : 'confirm.inserted'));
     bindHTML('cf.usd', money(deal.usd * 100, 'USD'));
+    bindHidden('cf.change', change <= 0);
+    bindHTML('cf.change', tHTML('confirm.change', { n: nf0.format(change) }));
     bindHTML('cf.mxn', money(cents, 'MXN'));
     bindText('cf.rate', (deal.rate / 100).toFixed(2));
+  }
+
+  function renderAdjust() {
+    var d = state.deal, a = state.adjust;
+    if (!d || !a) return;
+    var change = d.inserted - a.usd;
+    bindHTML('adj.sub', tHTML('adjust.inserted', { n: nf0.format(d.inserted) }));
+    bindHTML('adj.usd', money(a.usd * 100, 'USD'));
+    bindHTML('adj.mxn', money(mxnCents(a.usd, d.rate), 'MXN'));
+    bindHidden('adj.change', change <= 0);
+    bindHTML('adj.change', tHTML('adjust.change', { n: nf0.format(change) }));
+    $$('[data-action="adj-minus"]').forEach(function (b) { b.disabled = a.usd <= 1; });
+    $$('[data-action="adj-plus"]').forEach(function (b) { b.disabled = a.usd >= d.inserted; });
+    $$('[data-action="adj-all"]').forEach(function (b) { b.classList.toggle('is-on', a.usd === d.inserted); });
   }
 
   function renderDeliver() {
@@ -486,6 +500,11 @@
     bindHTML('dv.usd', money(r.usd * 100, 'USD'));
     bindText('dv.rate', (r.rate / 100).toFixed(2));
     bindHTML('dv.mxn', money(r.cents, 'MXN'));
+    var chg = r.change || 0;
+    bindHidden('dv.change', !(chg > 0));
+    bindHTML('dv.change', tHTML('deliver.change', { n: nf0.format(chg) }));
+    bindHidden('dv.changeRow', !(chg > 0));
+    bindHTML('dv.changeVal', money(chg * 100, 'USD'));
     if (!done) bindHidden('dv.count', true);
   }
 
@@ -506,8 +525,8 @@
     if (s === 'confirm') renderConfirm();
     if (s === 'deliver') renderDeliver();
     if (s === 'incident') renderIncident();
+    if (state.modal === 'adjust') renderAdjust();
     /* Chrome común */
-    renderStepper();
     var cfg = SCREENS[s].actions();
     kiosk.classList.toggle('has-langs', s === 'start');
     setBtn($('#btnSecondary'), cfg.secondary);
@@ -518,7 +537,7 @@
   /* ------------------------------------------------------------------ Salto directo (revisión de diseño) */
   var SAMPLES = {
     partial: { 20: 2, 5: 1, 1: 3 },   // 48 USD
-    confirm: { 5: 1 }                  // 5 USD
+    confirm: { 100: 3, 50: 1 }         // 350 USD (permite probar el ajuste de monto)
   };
   function fullCap() {
     var cap = capUSD(), n = Math.floor(cap / 100), b = {};
@@ -527,7 +546,7 @@
     return b;
   }
   function setBills(b) { state.bills = JSON.parse(JSON.stringify(b)); state.lastBill = null; }
-  function makeDeal() { state.deal = { usd: insertedUSD(), rate: rateCents() }; }
+  function makeDeal() { state.deal = { inserted: insertedUSD(), usd: insertedUSD(), rate: rateCents() }; }
 
   function jump(id) {
     clearFlowTimers(); stopIdleCountdown(); closeModal();
@@ -538,6 +557,8 @@
       case 'insert-partial': setBills(SAMPLES.partial); go('insert'); break;
       case 'insert-cap': setBills(fullCap()); go('insert'); break;
       case 'confirm': setBills(SAMPLES.confirm); go('confirm'); break;
+      case 'confirm-adjusted': setBills(fullCap()); go('confirm'); state.deal.usd = Math.max(1, state.deal.inserted - 50); render(); break;
+      case 'modal:adjust': setBills(fullCap()); go('confirm'); openAdjust({ hold: true, usd: Math.max(1, state.deal.inserted - 50) }); break;
       case 'deliver-run': setBills(SAMPLES.confirm); go('confirm'); go('deliver', { hold: true, phase: 1 }); break;
       case 'deliver': setBills(SAMPLES.confirm); go('confirm'); go('deliver', { hold: true, phase: 3 }); break;
       case 'incident': setBills(SAMPLES.confirm); go('insert'); openIncident('delivery'); break;
@@ -578,6 +599,14 @@
       case 'cancel-yes': closeModal(); returnOrExit('cancel'); break;
       case 'error-ok': closeModal(); afterFailure(); break;
       case 'idle-ok': stopIdleCountdown(); closeModal(); resetIdle(); break;
+      case 'adjust-open': openAdjust(); break;
+      case 'adj-minus': adjustTo(state.adjust.usd - CONFIG.adjustStep); break;
+      case 'adj-plus': adjustTo(state.adjust.usd + CONFIG.adjustStep); break;
+      case 'adj-all': adjustTo(state.deal.inserted); break;
+      case 'adj-m50': adjustTo(state.adjust.usd - 50); break;
+      case 'adj-m100': adjustTo(state.adjust.usd - 100); break;
+      case 'adj-cancel': closeModal(); resetIdle(); break;
+      case 'adj-apply': applyAdjust(); break;
     }
   });
 
