@@ -148,6 +148,11 @@
             </div>
           </header>
 
+          <div class="langs" id="langGroup" role="group" aria-label="Idioma / Language">
+            <button class="lang" type="button" data-lang="es" aria-label="Español"><svg class="flag"><use href="#flag-mx"/></svg><span>ES</span></button>
+            <button class="lang" type="button" data-lang="en" aria-label="English"><svg class="flag"><use href="#flag-us"/></svg><span>EN</span></button>
+          </div>
+
           <ol class="stepper" id="stepper" hidden>
             <li class="step" data-step="1"><span class="step__dot"></span><span class="step__label" data-i18n="step.start"></span></li>
             <li class="step" data-step="2"><span class="step__dot"></span><span class="step__label" data-i18n="step.bills"></span></li>
@@ -161,12 +166,16 @@
             <section class="screen screen--start" data-id="start">
               <div class="hero">
                 <div class="hero__rate">
-                  <p class="hello" data-i18n="welcome.hello"></p>
+                  <span class="pill pill--ok" data-bind="fee" data-i18n="rate.noFee"></span>
                   <p class="rate-lead" data-i18n="rate.lead"></p>
-                  <p class="rate-big"><span class="rate-big__sym">$</span><span class="num" data-bind="rate"></span></p>
+                  <p class="rate-big"><span class="rate-big__sym">$</span><span class="rate-big__num" data-bind="rate"></span></p>
                   <p class="rate-unit" data-i18n="rate.unit"></p>
+                  <div class="swap" role="img" aria-label="USD → MXN">
+                    <span class="swap__side"><svg class="flag"><use href="#flag-us"/></svg><b>USD</b></span>
+                    <svg class="icon swap__arrow" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+                    <span class="swap__side"><svg class="flag"><use href="#flag-mx"/></svg><b>MXN</b></span>
+                  </div>
                   <div class="pills">
-                    <span class="pill pill--ok" data-bind="fee" data-i18n="rate.noFee"></span>
                     <span class="pill" data-bind="cap.note"></span>
                   </div>
                 </div>
@@ -177,7 +186,6 @@
               </div>
 
               <div class="privacy">
-                <img class="privacy__qr" src="assets/img/qr-privacidad.svg" alt="">
                 <div class="privacy__text">
                   <p class="privacy__line" data-i18n="privacy.line"></p>
                   <p class="privacy__more"><span data-i18n="privacy.qr"></span> <b>modo.exchange/privacy</b></p>
@@ -322,10 +330,6 @@
           </div>
 
           <footer class="actions" id="actions">
-            <div class="langs" id="langGroup" role="group" aria-label="Idioma">
-              <button class="lang" type="button" data-lang="es"><svg class="flag"><use href="#flag-mx"/></svg><span>Español</span></button>
-              <button class="lang" type="button" data-lang="en"><svg class="flag"><use href="#flag-us"/></svg><span>English</span></button>
-            </div>
             <button class="btn" id="btnSecondary" type="button"><span class="btn__label"></span></button>
             <button class="btn" id="btnPrimary" type="button"><span class="btn__label"></span></button>
           </footer>
