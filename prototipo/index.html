@@ -164,7 +164,12 @@
                 <div class="hero__rate">
                   <span class="pill pill--ok" data-bind="fee" data-i18n="rate.noFee"></span>
                   <p class="rate-lead" data-i18n="rate.lead"></p>
-                  <p class="rate-big"><span class="rate-big__sym">$</span><span class="rate-big__num" data-bind="rate"></span></p>
+                  <!-- Alineación visual: el punto decimal es el eje central; "$" y entero a su izquierda, decimales a su derecha -->
+                  <p class="rate-big">
+                    <span class="rate-big__l"><span class="rate-big__sym">$</span><span class="rate-big__num" data-bind="rate.int"></span></span>
+                    <span class="rate-big__num rate-big__dot">.</span>
+                    <span class="rate-big__num rate-big__r" data-bind="rate.dec"></span>
+                  </p>
                   <p class="rate-unit" data-i18n="rate.unit"></p>
                   <div class="swap" role="img" aria-label="USD → MXN">
                     <span class="swap__side"><svg class="flag"><use href="#flag-us"/></svg><b>USD</b></span>
@@ -234,39 +239,50 @@
                     <video src="assets/video/cash-in.mp4" autoplay muted loop playsinline></video>
                   </div>
                 </div>
+                <p class="ins__hint">
+                  <svg class="icon" aria-hidden="true"><use href="#i-sliders"/></svg>
+                  <span data-i18n="insert.hint"></span>
+                </p>
               </div>
             </section>
 
             <!-- ── 3 · Confirmación ── -->
             <section class="screen screen--confirm" data-id="confirm">
-              <h2 class="title title--center" data-i18n="confirm.title"></h2>
+              <header class="cf__head">
+                <h2 class="title" data-i18n="confirm.title"></h2>
+              </header>
 
-              <div class="cf__usd">
-                <span class="cf__lbl" data-bind="cf.lbl"></span>
-                <span class="cf__val" data-bind="cf.usd"></span>
-                <p class="sub cf__change" data-bind="cf.change" hidden></p>
+              <div class="cf__body">
+                <div class="sum">
+                  <div class="sum__row sum__row--main">
+                    <span class="sum__lbl" data-i18n="confirm.amount"></span>
+                    <!-- Ajustar monto: a la altura del monto, no escondido -->
+                    <button class="sum__adjust" type="button" data-action="adjust-open">
+                      <svg class="icon" aria-hidden="true"><use href="#i-sliders"/></svg>
+                      <span data-i18n="adjust.btn"></span>
+                    </button>
+                    <span class="sum__val" data-bind="cf.usd"></span>
+                  </div>
+                  <div class="sum__row sum__row--received">
+                    <span class="sum__lbl" data-i18n="confirm.received"></span>
+                    <span class="sum__val" data-bind="cf.received"></span>
+                  </div>
+                  <div class="sum__row sum__row--change" data-bind="cf.changeRow">
+                    <span class="sum__lbl" data-i18n="confirm.changeLbl"></span>
+                    <span class="sum__val" data-bind="cf.change"></span>
+                  </div>
+                </div>
+
+                <div class="cf__hero">
+                  <span class="fig__lbl" data-i18n="confirm.receive"></span>
+                  <span class="fig__val" data-bind="cf.mxn"></span>
+                  <span class="cf__rate" role="img" aria-label="1 USD = MXN">
+                    <svg class="flag"><use href="#flag-us"/></svg><b>$1 USD</b>
+                    <span class="cap__eq">=</span>
+                    <svg class="flag"><use href="#flag-mx"/></svg><b>$<span data-bind="cf.rate"></span> MXN</b>
+                  </span>
+                </div>
               </div>
-
-              <div class="cf__hero">
-                <span class="fig__lbl" data-i18n="confirm.receive"></span>
-                <span class="fig__val" data-bind="cf.mxn"></span>
-              </div>
-
-              <div class="rate-pill rate-pill--center">
-                <span class="rate-pill__lbl" data-i18n="confirm.rate"></span>
-                <span class="num rate-pill__val" data-bind="cf.rate"></span>
-                <span class="rate-pill__cur">MXN / USD</span>
-              </div>
-
-              <!-- Ajustar monto: opción visible, no escondida -->
-              <button class="adjust-cta" type="button" data-action="adjust-open">
-                <span class="adjust-cta__icon"><svg class="icon"><use href="#i-sliders"/></svg></span>
-                <span class="adjust-cta__txt">
-                  <b data-i18n="adjust.cta"></b>
-                  <small data-i18n="adjust.ctaHint"></small>
-                </span>
-                <svg class="icon adjust-cta__go" aria-hidden="true"><use href="#i-arrow-right"/></svg>
-              </button>
             </section>
 
             <!-- ── 4 · Entrega: billetes → monedas → ticket ── -->
@@ -277,6 +293,7 @@
                 <h2 class="title" data-bind="dv.title"></h2>
               </header>
 
+              <div class="dv__body">
               <ol class="dv__steps">
                 <li class="dv__step" data-phase="0">
                   <span class="dv__dot"></span>
@@ -310,6 +327,7 @@
               </div>
 
               <p class="dv__count" data-bind="dv.count" hidden></p>
+              </div>
             </section>
 
             <!-- ── Incidencia (improvisada): falla después de recibir el dinero ── -->

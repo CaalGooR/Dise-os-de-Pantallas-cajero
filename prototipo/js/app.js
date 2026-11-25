@@ -413,7 +413,9 @@
 
   function renderStart() {
     var rc = rateCents();
-    bindText('rate', (rc / 100).toFixed(2));
+    var rateParts = (rc / 100).toFixed(2).split('.');
+    bindText('rate.int', rateParts[0]);
+    bindText('rate.dec', rateParts[1]);
     $('[data-id="start"]').classList.toggle('is-notable', !CONFIG.showTable);
     bindHidden('fee', !CONFIG.feeFree);
     bindHidden('cap.note', !CONFIG.dynamicCap);
@@ -455,13 +457,13 @@
 
   function renderConfirm() {
     var deal = state.deal || { inserted: insertedUSD(), usd: insertedUSD(), rate: rateCents() };
-    var cents = mxnCents(deal.usd, deal.rate);
-    var change = (deal.inserted || deal.usd) - deal.usd;
-    bindText('cf.lbl', t(change > 0 ? 'confirm.exchange' : 'confirm.inserted'));
+    var received = deal.inserted || deal.usd;
+    var change = received - deal.usd;
     bindHTML('cf.usd', money(deal.usd * 100, 'USD'));
-    bindHidden('cf.change', change <= 0);
-    bindHTML('cf.change', tHTML('confirm.change', { n: nf0.format(change) }));
-    bindHTML('cf.mxn', money(cents, 'MXN'));
+    bindHTML('cf.received', money(received * 100, 'USD'));
+    bindHTML('cf.change', money(change * 100, 'USD'));
+    $('[data-bind="cf.changeRow"]').classList.toggle('is-zero', change <= 0);
+    bindHTML('cf.mxn', money(mxnCents(deal.usd, deal.rate), 'MXN'));
     bindText('cf.rate', (deal.rate / 100).toFixed(2));
   }
 
