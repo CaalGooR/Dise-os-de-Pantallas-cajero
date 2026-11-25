@@ -152,7 +152,14 @@
 /* Inicio sin logo, fecha ni hora: la sucursal ya está brandeada y la fecha va en el ticket.
    Se oculta la barra y el contenido ocupa todo el alto disponible, sin filas vacías. */
 .kiosk[data-screen="start"] { grid-template-rows: minmax(0, 1fr) auto; row-gap: 0; }
-.kiosk[data-screen="start"] .topbar { display: none; }
+.kiosk[data-screen="start"] .topbar,
+.kiosk[data-screen="insert"] .topbar { display: none; }
+/* Insertar dólares: sin marca ni fecha; el indicador de pasos sube arriba y el contenido
+   usa todo el alto liberado */
+.kiosk[data-screen="insert"] { grid-template-rows: auto minmax(0, 1fr) auto; }
+.kiosk[data-screen="insert"] .stepper { grid-row: 1; }
+.kiosk[data-screen="insert"] .content { grid-row: 2; }
+.kiosk[data-screen="insert"] .actions { grid-row: 3; }
 /* La franja superior queda reservada para el selector ES / EN: el contenido empieza debajo */
 /* Inicio: el aviso de privacidad queda pegado abajo (encima del botón) y el contenido principal
    se centra entre la barra de idiomas (arriba) y el aviso de privacidad (abajo). */
@@ -300,9 +307,10 @@
   gap: calc(var(--px) * 10);
 }
 .kiosk.has-langs #btnSecondary { display: none; }
-/* Botón principal del inicio: más alto, amarillo de contraste (fuera de la paleta índigo/cian) y brillo suave, para que sea
+/* Botón principal (inicio e inserción): más alto, amarillo de contraste (fuera de la paleta índigo/cian) y brillo suave, para que sea
    la única acción llamativa de la pantalla. Texto e icono en una sola línea. */
-.kiosk[data-screen="start"] #btnPrimary {
+.kiosk[data-screen="start"] #btnPrimary,
+.kiosk[data-screen="insert"] #btnPrimary {
   height: calc(var(--btn-h) * 1.2);
   border-radius: var(--r);
   background: linear-gradient(135deg, #ffe36b 0%, #ffcc2e 48%, #f5a623 100%);
@@ -316,6 +324,13 @@
 }
 .kiosk[data-screen="start"] #btnPrimary .btn__label { flex-direction: row; gap: calc(var(--px) * 20); }
 .kiosk[data-screen="start"] #btnPrimary .icon { font-size: calc(var(--px) * 46); stroke-width: 2.8; }
+/* Inserción: ambos botones con la misma altura y tipografía para que el pie se vea parejo.
+   Al ser más bajo, el pie deja más alto útil para el wizard (contenido). */
+.kiosk[data-screen="insert"] #btnPrimary,
+.kiosk[data-screen="insert"] #btnSecondary {
+  height: var(--btn-h);
+  font-size: calc(var(--px) * 44);
+}
 .lang {
   appearance: none;
   flex: none;
@@ -545,10 +560,11 @@
 }
 /* Franja del video: leyenda a la izquierda, clip cuadrado a la derecha (como en el inicio) */
 .ins__clip {
-  --art: calc(var(--px) * 300);
   position: relative;
   display: flex;
   align-items: center;
+  gap: calc(var(--px) * 24);
+  padding: calc(var(--px) * 18) calc(var(--px) * 18) calc(var(--px) * 18) 0;
   overflow: hidden;
   border-radius: var(--r);
   background:
@@ -556,14 +572,16 @@
     rgba(12, 6, 70, 0.30);
 }
 .ins__note {
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 0 0 0 calc(var(--px) * 36);
-  max-width: calc(100% - var(--art) - var(--px) * 72);
   font-size: calc(var(--px) * 38);
   font-weight: 500;
   line-height: 1.25;
   color: #fff;
 }
-.ins__art { position: absolute; top: 50%; right: 0; transform: translateY(-50%); width: var(--art); height: var(--art); transition: filter 0.3s; }
+/* El clip ocupa la altura del contenedor (con margen interno) y su ancho sale de ahí: siempre centrado */
+.ins__art { position: relative; flex: none; height: 100%; aspect-ratio: 1 / 1; border-radius: calc(var(--px) * 14); overflow: hidden; transition: filter 0.3s; }
 .ins__art video { display: block; width: 100%; height: 100%; object-fit: cover; }
 
 .bill-feed {
@@ -590,11 +608,11 @@
 .bill-list {
   list-style: none;
   margin: 0;
-  padding: calc(var(--px) * 18) calc(var(--px) * 22);
+  padding: calc(var(--px) * 12) calc(var(--px) * 16);
   height: 100%;
   display: grid;
   align-content: start;
-  gap: calc(var(--px) * 10);
+  gap: calc(var(--px) * 6);
   overflow: auto;
   scrollbar-width: none;
 }
@@ -603,30 +621,30 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: calc(var(--px) * 18);
-  padding: calc(var(--px) * 10) calc(var(--px) * 16);
+  gap: calc(var(--px) * 14);
+  padding: calc(var(--px) * 6) calc(var(--px) * 14);
   border-radius: var(--r-sm);
   background: rgba(255, 255, 255, 0.07);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-xs);
   font-weight: 500;
 }
 .bill-row.is-new { animation: row-in 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
 @keyframes row-in { from { opacity: 0; transform: translateY(calc(var(--px) * -18)); } to { opacity: 1; transform: none; } }
 .bill-row__qty { color: var(--c-text-soft); }
-.bill-row__sub { justify-self: end; font-size: var(--fs-md); font-weight: 700; }
+.bill-row__sub { justify-self: end; font-size: var(--fs-sm); font-weight: 700; }
 
 .bill {
   --bill-c: #b6d9a6;
   position: relative;
-  width: calc(var(--px) * 120);
-  height: calc(var(--px) * 56);
-  border-radius: calc(var(--px) * 8);
+  width: calc(var(--px) * 100);
+  height: calc(var(--px) * 42);
+  border-radius: calc(var(--px) * 7);
   display: grid;
   place-items: center;
   background: var(--bill-c);
   color: rgba(10, 6, 50, 0.8);
   font-family: "JetBrains Mono", monospace;
-  font-size: var(--fs-sm);
+  font-size: var(--fs-xs);
   font-weight: 800;
 }
 .bill b { font-weight: 800; }
@@ -985,7 +1003,7 @@
     padding: calc(var(--px) * 28) calc(var(--px) * 28) calc(var(--px) * 24);
     --art: calc(var(--px) * 380);
   }
-  .ins__art { position: relative; top: auto; right: auto; transform: none; align-self: center; border-radius: calc(var(--px) * 28); overflow: hidden; }
+  .ins__art { position: relative; height: auto; width: calc(var(--px) * 380); align-self: center; border-radius: calc(var(--px) * 28); overflow: hidden; }
   .ins__note { margin: 0; max-width: none; text-align: center; font-size: calc(var(--px) * 36); }
   .bill-row { font-size: var(--fs-md); }
   .bill-row__sub { font-size: var(--fs-lg); }

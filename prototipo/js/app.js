@@ -167,6 +167,13 @@
     }, CONFIG.validatingMs);
   }
 
+  /* Cancelar en "Inserta tus dólares": sin billetes vuelve al inicio; con billetes pide confirmación
+     y los devuelve (escrow). */
+  function cancelInsert() {
+    if (insertedUSD() > 0) openModal('cancel');
+    else { clearFlowTimers(); endFlow(); }
+  }
+
   function requestCancel() {
     if (!CONFIG.escrow) return;             // sin escrow no hay cancelación
     openModal('cancel');
@@ -261,7 +268,7 @@
       onEnter: function () { state.deal = null; },
       actions: function () {
         return {
-          secondary: null,
+          secondary: { key: 'btn.cancel', variant: 'danger', onClick: cancelInsert },
           primary: { key: 'btn.finish', variant: 'cyan', enabled: insertedUSD() > 0, onClick: validate }
         };
       }
@@ -443,7 +450,7 @@
       return '<li class="bill-row' + (state.lastBill === d ? ' is-new' : '') + '">' +
         '<span class="bill" data-denom="' + d + '"><b>' + USD_BILL_LABEL(d) + '</b></span>' +
         '<span class="bill-row__qty">\u00d7 ' + c + '</span>' +
-        '<span class="bill-row__sub num">' + nf0.format(d * c) + ' USD</span></li>';
+        '<span class="bill-row__sub num">' + nf0.format(d * c) + '</span></li>';
     }).join(''));
     var notice = $('[data-bind="notice"]');
     notice.hidden = !state.notice;
