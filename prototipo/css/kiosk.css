@@ -154,17 +154,13 @@
 .kiosk[data-screen="start"] { grid-template-rows: minmax(0, 1fr) auto; row-gap: 0; }
 .kiosk[data-screen="start"] .topbar,
 .kiosk[data-screen="insert"] .topbar,
-.kiosk[data-screen="confirm"] .topbar,
 .kiosk[data-screen="deliver"] .topbar { display: none; }
 /* Insertar dólares: sin marca ni fecha; el contenido usa todo el alto liberado */
 .kiosk[data-screen="insert"],
-.kiosk[data-screen="confirm"],
 .kiosk[data-screen="deliver"] { grid-template-rows: minmax(0, 1fr) auto; }
 .kiosk[data-screen="insert"] .content,
-.kiosk[data-screen="confirm"] .content,
 .kiosk[data-screen="deliver"] .content { grid-row: 1; }
 .kiosk[data-screen="insert"] .actions,
-.kiosk[data-screen="confirm"] .actions,
 .kiosk[data-screen="deliver"] .actions { grid-row: 2; }
 /* La franja superior queda reservada para el selector ES / EN: el contenido empieza debajo */
 /* Inicio: el aviso de privacidad queda pegado abajo (encima del botón) y el contenido principal
@@ -272,7 +268,6 @@
    la única acción llamativa de la pantalla. Texto e icono en una sola línea. */
 .kiosk[data-screen="start"] #btnPrimary,
 .kiosk[data-screen="insert"] #btnPrimary,
-.kiosk[data-screen="confirm"] #btnPrimary,
 .kiosk[data-screen="deliver"] #btnPrimary {
   height: calc(var(--btn-h) * 1.2);
   border-radius: var(--r);
@@ -295,8 +290,6 @@
    Al ser más bajo, el pie deja más alto útil para el wizard (contenido). */
 .kiosk[data-screen="insert"] #btnPrimary,
 .kiosk[data-screen="insert"] #btnSecondary,
-.kiosk[data-screen="confirm"] #btnPrimary,
-.kiosk[data-screen="confirm"] #btnSecondary,
 .kiosk[data-screen="deliver"] #btnPrimary {
   height: var(--btn-h);
   font-size: calc(var(--px) * 44);
@@ -646,68 +639,6 @@
 /* --------------------------------------------------------------------------
    3 · Confirmación
    -------------------------------------------------------------------------- */
-.screen--confirm { gap: calc(var(--px) * 22); }
-.cf__head { display: flex; align-items: center; gap: calc(var(--px) * 22); }
-.cf__head .title { font-size: calc(var(--px) * 50); font-weight: 700; letter-spacing: -0.01em; }
-/* Resumen centrado verticalmente en el espacio que deja la instrucción */
-.cf__body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; justify-content: center; gap: calc(var(--px) * 24); }
-
-/* Resumen: Monto a cambiar (con Ajustar a su altura), Recibido y Cambio */
-.sum {
-  display: grid;
-  padding: 0 calc(var(--px) * 32);
-  border-radius: var(--r);
-  background: var(--c-glass);
-  border: calc(var(--px) * 1.5) solid rgba(255, 255, 255, 0.12);
-}
-.sum__row { display: flex; align-items: center; gap: calc(var(--px) * 20); padding: calc(var(--px) * 22) 0; }
-.sum__row + .sum__row { border-top: calc(var(--px) * 1.5) solid rgba(255, 255, 255, 0.12); }
-.sum__lbl { flex: 1 1 0; min-width: 0; font-size: var(--fs-md); font-weight: 500; color: var(--c-text-soft); text-wrap: balance; }
-.sum__val { flex: none; line-height: 1; text-align: right; }
-.sum__val .money { font-size: var(--fs-n-sm); }
-.sum__val .money .num { font-weight: 700; }
-.sum__row--received .sum__val { color: rgba(255, 255, 255, 0.9); }
-.sum__row--change .sum__val { color: #ffcc2e; }
-.sum__row--change.is-zero .sum__lbl, .sum__row--change.is-zero .sum__val { opacity: 0.45; }
-.sum__row--change.is-zero .sum__val { color: #fff; }
-.sum__row--main { padding: calc(var(--px) * 26) 0; }
-.sum__row--main .sum__lbl { flex: none; color: #fff; font-weight: 700; }
-.sum__side { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: calc(var(--px) * 14); }
-.sum__row--main .sum__val .money { font-size: var(--fs-n-md); }
-.sum__adjust {
-  appearance: none; border: 0; margin: 0; cursor: pointer; touch-action: manipulation; font: inherit;
-  flex: none;
-  display: inline-flex; align-items: center; justify-content: center; gap: calc(var(--px) * 12);
-  height: calc(var(--px) * 80);
-  padding: 0 calc(var(--px) * 32) 0 calc(var(--px) * 26);
-  border-radius: 999px;
-  background: var(--c-cyan);
-  color: var(--c-indigo-900);
-  font-size: var(--fs-sm); font-weight: 700;
-  box-shadow: 0 calc(var(--px) * 8) calc(var(--px) * 22) rgba(4, 205, 216, 0.35);
-  transition: transform 0.12s;
-}
-.sum__adjust .icon { font-size: calc(var(--px) * 38); }
-.sum__adjust:active { transform: scale(0.96); }
-
-.cf__hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: calc(var(--px) * 12);
-  padding: calc(var(--px) * 34) calc(var(--px) * 24) calc(var(--px) * 28);
-  border-radius: calc(var(--px) * 40);
-  background: #fff;
-  color: var(--c-indigo);
-  box-shadow: 0 calc(var(--px) * 30) calc(var(--px) * 70) rgba(10, 5, 70, 0.35);
-}
-.cf__hero .fig__lbl { color: var(--c-muted); font-size: var(--fs-md); }
-.cf__hero .fig__val, .cf__hero .fig__val .money { font-size: var(--fs-n-lg); color: var(--c-indigo); }
-.cf__hero .fig__val .money__cur { color: var(--c-indigo); }
-.cf__rate { display: inline-flex; align-items: center; gap: calc(var(--px) * 12); margin-top: calc(var(--px) * 6); font-size: var(--fs-sm); font-weight: 500; color: var(--c-muted); }
-.cf__rate b { font-weight: 700; color: var(--c-indigo); }
-.cf__rate .cap__eq { color: var(--c-indigo); }
-.cf__rate .flag { width: calc(var(--px) * 38); height: calc(var(--px) * 27); box-shadow: 0 0 0 calc(var(--px) * 2) rgba(51, 43, 167, 0.18); }
 .link-btn {
   appearance: none;
   background: none;
@@ -922,6 +853,7 @@
   justify-items: center;
   gap: calc(var(--px) * 16);
   box-shadow: 0 calc(var(--px) * 30) calc(var(--px) * 80) rgba(0, 0, 0, 0.45);
+  position: relative;
 }
 .modal.is-open { display: grid; animation: pop-in 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
 @keyframes pop-in { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: none; } }
@@ -933,6 +865,26 @@
 .modal__icon--info { background: var(--c-cyan-100); color: var(--c-indigo); }
 .modal__actions { display: flex; gap: calc(var(--px) * 12); width: 100%; margin-top: calc(var(--px) * 12); }
 .modal__actions .btn { flex: 1 1 0; height: calc(var(--btn-h) * 0.86); font-size: var(--fs-md); }
+/* Acción principal de los modales: el mismo amarillo que el botón principal de las pantallas */
+.modal__actions .btn--cyan {
+  background: linear-gradient(135deg, #ffe36b 0%, #ffcc2e 48%, #f5a623 100%);
+  color: var(--c-indigo-900);
+  box-shadow:
+    0 calc(var(--px) * 10) calc(var(--px) * 26) rgba(245, 166, 35, 0.32),
+    inset 0 calc(var(--px) * 2) 0 rgba(255, 255, 255, 0.55);
+}
+.modal--adjust .modal__text b { color: var(--c-indigo-900); font-weight: 700; }
+/* Cerrar (X): esquina superior derecha, mismo índigo claro que los botones secundarios */
+.modal__close {
+  appearance: none; border: 0; margin: 0; padding: 0; cursor: pointer; touch-action: manipulation;
+  position: absolute; top: calc(var(--px) * 24); right: calc(var(--px) * 24);
+  width: calc(var(--px) * 80); height: calc(var(--px) * 80); border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--c-indigo-50); color: var(--c-indigo); font-size: calc(var(--px) * 40);
+  transition: transform 0.12s;
+}
+.modal__close .icon { stroke-width: 2.8; }
+.modal__close:active { transform: scale(0.94); }
 .modal .spinner { width: calc(var(--px) * 110); height: calc(var(--px) * 110); }
 
 /* Modal "¿Cuánto quieres cambiar?": monto grande con − / +, atajos y resumen con el cambio en USD */
@@ -968,6 +920,10 @@
 .adj__recv .money__cur { color: var(--c-indigo); }
 .adj__change { margin: 0; padding: calc(var(--px) * 12) calc(var(--px) * 22); border-radius: 999px; background: var(--c-warning-100); color: #8a5a00; font-size: var(--fs-sm); font-weight: 500; text-align: center; }
 .adj__change b { font-weight: 800; color: #a35f00; }
+
+/* Cambio de un modal a otro sin cerrar la capa: transición suave en vez del "pop" */
+.modal.is-open.is-swap { animation: swap-in 0.3s ease-out both; }
+@keyframes swap-in { from { opacity: 0; transform: translateY(calc(var(--px) * 16)); } to { opacity: 1; transform: none; } }
 
 .spinner {
   width: calc(var(--px) * 96);
@@ -1025,7 +981,7 @@
   .lang-btn .icon { font-size: calc(var(--px) * 50); }
 
   .ins__head .title { font-size: calc(var(--px) * 84); }
-  .ins__head, .cf__head, .dv__head { gap: calc(var(--px) * 30); }
+  .ins__head, .dv__head { gap: calc(var(--px) * 30); }
   .figures { gap: calc(var(--px) * 18); }
   .fig__val, .fig__val .money { font-size: calc(var(--px) * 52); }
   .fig--hero .fig__val, .fig--hero .fig__val .money { font-size: calc(var(--px) * 60); }
@@ -1061,21 +1017,6 @@
   .ins__art { width: auto; height: 100%; aspect-ratio: 1 / 1; max-width: 100%; align-self: center; justify-self: center; }
   .notice { font-size: var(--fs-md); }
 
-  .screen--confirm { gap: calc(var(--px) * 36); }
-  .cf__head .title { font-size: calc(var(--px) * 84); }
-  .cf__body { gap: calc(var(--px) * 40); }
-  .sum { padding: 0 calc(var(--px) * 40); }
-  .sum__row { padding: calc(var(--px) * 34) 0; gap: calc(var(--px) * 24); }
-  .sum__row--main { padding: calc(var(--px) * 40) 0; }
-  .sum__side { gap: calc(var(--px) * 22); }
-  .sum__row--main .sum__val .money { font-size: calc(var(--px) * 76); }
-  .sum__adjust { height: calc(var(--px) * 108); padding: 0 calc(var(--px) * 40) 0 calc(var(--px) * 34); gap: calc(var(--px) * 16); }
-  .sum__adjust .icon { font-size: calc(var(--px) * 52); }
-  .cf__hero { padding: calc(var(--px) * 56) calc(var(--px) * 32) calc(var(--px) * 48); gap: calc(var(--px) * 20); }
-  .cf__hero .fig__val, .cf__hero .fig__val .money { font-size: calc(var(--px) * 112); }
-  .cf__hero .fig__lbl { font-size: var(--fs-lg); }
-  .cf__rate { font-size: var(--fs-md); gap: calc(var(--px) * 16); }
-  .cf__rate .flag { width: calc(var(--px) * 58); height: calc(var(--px) * 40); }
   .link-btn { font-size: var(--fs-md); }
 
   .screen--deliver { gap: calc(var(--px) * 36); }
@@ -1104,6 +1045,7 @@
   .state-icon { width: calc(var(--px) * 200); height: calc(var(--px) * 200); font-size: calc(var(--px) * 96); }
 
   .modal { width: min(100%, calc(var(--px) * 900)); }
+  .modal__close { top: calc(var(--px) * 32); right: calc(var(--px) * 32); width: calc(var(--px) * 104); height: calc(var(--px) * 104); font-size: calc(var(--px) * 52); }
   .modal.modal--adjust { width: min(100%, calc(var(--px) * 960)); padding: calc(var(--px) * 52) calc(var(--px) * 48) calc(var(--px) * 44); gap: calc(var(--px) * 18); }
   .modal--adjust .modal__text { font-size: var(--fs-md); }
   .adj { gap: calc(var(--px) * 30); }

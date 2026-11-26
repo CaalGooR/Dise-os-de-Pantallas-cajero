@@ -57,6 +57,7 @@
     <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol>
     <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></symbol>
     <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
   </g>
 </svg>
 
@@ -252,47 +253,6 @@
               <p class="banner" data-bind="ins.banner" hidden></p>
             </section>
 
-            <!-- ── 2 · Confirmación ── -->
-            <section class="screen screen--confirm" data-id="confirm">
-              <header class="cf__head">
-                <h2 class="title" data-i18n="confirm.title"></h2>
-              </header>
-
-              <div class="cf__body">
-                <div class="sum">
-                  <div class="sum__row sum__row--main">
-                    <!-- Etiqueta y botón Ajustar apilados a la izquierda; el monto a la derecha, a su altura -->
-                    <div class="sum__side">
-                      <span class="sum__lbl" data-i18n="confirm.amount"></span>
-                      <button class="sum__adjust" type="button" data-action="adjust-open">
-                        <svg class="icon" aria-hidden="true"><use href="#i-sliders"/></svg>
-                        <span data-i18n="adjust.btn"></span>
-                      </button>
-                    </div>
-                    <span class="sum__val" data-bind="cf.usd"></span>
-                  </div>
-                  <div class="sum__row sum__row--received">
-                    <span class="sum__lbl" data-i18n="confirm.received"></span>
-                    <span class="sum__val" data-bind="cf.received"></span>
-                  </div>
-                  <div class="sum__row sum__row--change" data-bind="cf.changeRow">
-                    <span class="sum__lbl" data-i18n="confirm.changeLbl"></span>
-                    <span class="sum__val" data-bind="cf.change"></span>
-                  </div>
-                </div>
-
-                <div class="cf__hero">
-                  <span class="fig__lbl" data-i18n="confirm.receive"></span>
-                  <span class="fig__val" data-bind="cf.mxn"></span>
-                  <span class="cf__rate" role="img" aria-label="1 USD = MXN">
-                    <svg class="flag"><use href="#flag-us"/></svg><b>$1 USD</b>
-                    <span class="cap__eq">=</span>
-                    <svg class="flag"><use href="#flag-mx"/></svg><b>$<span data-bind="cf.rate"></span> MXN</b>
-                  </span>
-                </div>
-              </div>
-            </section>
-
             <!-- ── 3 · Entrega: billetes → monedas → ticket ── -->
             <section class="screen screen--deliver" data-id="deliver">
               <header class="dv__head">
@@ -376,6 +336,22 @@
               <p class="modal__text" data-i18n="validating.text"></p>
             </div>
 
+            <!-- ¿Cambiar todo?: aparece tras validar; "No, modificar" se transforma en Ajustar monto -->
+            <div class="modal modal--adjust" data-modal-id="convert" role="dialog">
+              <button class="modal__close" type="button" data-action="convert-close" data-i18n-aria="convert.close"><svg class="icon"><use href="#i-x"/></svg></button>
+              <h3 class="modal__title" data-i18n="convert.title"></h3>
+              <p class="modal__text" data-bind="cv.sub"></p>
+              <div class="adj">
+                <div class="adj__sum">
+                  <div class="adj__recv"><span class="adj__lbl" data-i18n="adjust.receive"></span><span data-bind="cv.mxn"></span></div>
+                </div>
+              </div>
+              <div class="modal__actions">
+                <button class="btn btn--light btn--modal" type="button" data-action="convert-modify"><span class="btn__label" data-i18n="convert.modify"></span></button>
+                <button class="btn btn--cyan btn--modal" type="button" data-action="convert-yes"><span class="btn__label" data-i18n="convert.yes"></span></button>
+              </div>
+            </div>
+
             <!-- Ajustar monto: cambiar solo una parte; el resto se devuelve en dólares -->
             <div class="modal modal--adjust" data-modal-id="adjust" role="dialog">
               <h3 class="modal__title" data-i18n="adjust.title"></h3>
@@ -388,6 +364,7 @@
                 </div>
                 <div class="adj__chips">
                   <button class="adj__chip" type="button" data-action="adj-all" data-i18n="adjust.all"></button>
+                  <button class="adj__chip" type="button" data-action="adj-m10">−$10</button>
                   <button class="adj__chip" type="button" data-action="adj-m50">−$50</button>
                   <button class="adj__chip" type="button" data-action="adj-m100">−$100</button>
                 </div>

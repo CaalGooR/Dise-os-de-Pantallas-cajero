@@ -70,9 +70,8 @@
     ['insert-partial', '2b · Inserta tus dólares (parcial)'],
     ['insert-cap', '2c · Tope alcanzado (receptor bloqueado)'],
     ['modal:validating', '2d · Validando inventario'],
-    ['confirm', '3a · Confirmación'],
-    ['confirm-adjusted', '3b · Confirmación con monto ajustado'],
-    ['modal:adjust', '3c · Ajustar monto (modal)'],
+    ['modal:convert', '3a · ¿Cambiar todo? (modal)'],
+    ['modal:adjust', '3b · Ajustar monto (modal)'],
     ['deliver-run', '4a · Entrega en curso'],
     ['deliver', '4b · Entrega completa (ticket)'],
     ['incident', 'Extra · Incidencia (falla al entregar)'],
@@ -83,7 +82,7 @@
     ['modal:idle', 'Extra · Inactividad'],
     ['notice:reject', 'Extra · Billete rechazado']
   ];
-  var SCREEN_TO_OPTION = { start: 'start', insert: 'insert-partial', confirm: 'confirm', deliver: 'deliver', incident: 'incident', oos: 'oos' };
+  var SCREEN_TO_OPTION = { start: 'start', insert: 'insert-partial', deliver: 'deliver', incident: 'incident', oos: 'oos' };
 
   select.innerHTML = OPTIONS.map(function (o) { return '<option value="' + o[0] + '">' + o[1] + '</option>'; }).join('');
   select.addEventListener('change', function () { K.jump(select.value); select.blur(); });

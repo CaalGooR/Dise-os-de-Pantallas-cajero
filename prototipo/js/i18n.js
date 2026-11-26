@@ -47,7 +47,7 @@
       'reject.cap': 'Ese billete supera el tope de {max} USD. Retíralo.',
       'btn.finish': 'Siguiente',
 
-      /* Validación (automática, entre Siguiente y Confirmar) */
+      /* Validación (automática, tras "Sí, continuar" o "Continuar" en Ajustar monto) */
       'validating.title': 'Validando inventario...',
       'validating.text': 'Un momento, por favor.',
 
@@ -72,7 +72,12 @@
       'adjust.all': 'Todo',
       'adjust.receive': 'Recibirás',
       'adjust.change': 'Te devolveremos <b>${n} USD</b>',
-      'adjust.apply': 'Aplicar',
+      'adjust.apply': 'Continuar',
+      'convert.title': '¿Cambiar todo?',
+      'convert.sub': 'Ingresaste <b>${n} USD</b>',
+      'convert.yes': 'Sí, continuar',
+      'convert.modify': 'No, modificar',
+      'convert.close': 'Cerrar',
       'adjust.cancel': 'Volver',
 
       /* 4 · Entrega */
@@ -187,7 +192,12 @@
       'adjust.all': 'All',
       'adjust.receive': 'You will receive',
       'adjust.change': 'We will return <b>${n} USD</b>',
-      'adjust.apply': 'Apply',
+      'adjust.apply': 'Continue',
+      'convert.title': 'Exchange everything?',
+      'convert.sub': 'You inserted <b>${n} USD</b>',
+      'convert.yes': 'Yes, continue',
+      'convert.modify': 'No, change it',
+      'convert.close': 'Close',
       'adjust.cancel': 'Back',
 
       'deliver.title': 'Dispensing your cash',
