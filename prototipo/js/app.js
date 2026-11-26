@@ -69,7 +69,6 @@
   function emit() { listeners.forEach(function (fn) { fn(state); }); }
 
   /* ------------------------------------------------------------------ Utilidades */
-  var nf2 = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   var nf0 = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
   function pad(n, w) { return String(n).padStart(w || 2, '0'); }
   function randDigits(n) { var s = ''; while (s.length < n) s += Math.floor(Math.random() * 10); return s; }
@@ -86,13 +85,13 @@
   }
   function isLocked() { return insertedUSD() >= capUSD(); }
 
-  /* [SUPUESTO] Centavos: no hay monedas de 1 ni 2 centavos, así que el monto en MXN
-     se redondea hacia abajo a múltiplos de 5 centavos (a favor del kiosco). */
-  function mxnCents(usd, rc) { return Math.floor(usd * rc / 5) * 5; }
+  /* Sin centavos: los USD son siempre enteros y el monto en MXN se redondea HACIA ARRIBA al peso
+     (no se entregan centavos). Se devuelve en centavos, siempre múltiplo de 100. */
+  function mxnCents(usd, rc) { return Math.ceil(usd * rc / 100) * 100; }
 
-  /* Formato de montos: "$" + número mono + moneda */
+  /* Formato de montos: "$" + número + moneda, siempre sin decimales (USD enteros, MXN al peso) */
   function money(cents, cur) {
-    return '<span class="money"><span class="money__sym">$</span><span class="num">' + nf2.format(cents / 100) + '</span>' +
+    return '<span class="money"><span class="money__sym">$</span><span class="num">' + nf0.format(cents / 100) + '</span>' +
       (cur ? '<span class="money__cur">' + cur + '</span>' : '') + '</span>';
   }
 
@@ -425,9 +424,8 @@
         '<span class="tbl__arrow" aria-hidden="true">\u2192</span>' +
         '<span class="tbl__mxn">' + money(mxnCents(usd, rc), 'MXN') + '</span></li>';
     }).join(''));
-    $$('[data-lang]', $('#langGroup')).forEach(function (b) {
-      b.classList.toggle('is-active', b.dataset.lang === state.lang);
-    });
+    // El botón muestra el idioma al que se cambia
+    bindText('lang.next', state.lang === 'en' ? 'SPA' : 'ENG');
   }
 
   function renderInsert() {
@@ -588,9 +586,6 @@
 
   /* ------------------------------------------------------------------ Eventos */
   kiosk.addEventListener('click', function (e) {
-    var langEl = e.target.closest('[data-lang]');
-    if (langEl) { setLang(langEl.dataset.lang); return; }
-
     var act = e.target.closest('[data-action]');
     if (!act) {
       if (e.target === modalLayer && state.holdModal) closeModal();
@@ -601,6 +596,7 @@
       case 'cancel-yes': closeModal(); returnOrExit('cancel'); break;
       case 'error-ok': closeModal(); afterFailure(); break;
       case 'idle-ok': stopIdleCountdown(); closeModal(); resetIdle(); break;
+      case 'lang-toggle': setLang(state.lang === 'en' ? 'es' : 'en'); break;
       case 'adjust-open': openAdjust(); break;
       case 'adj-minus': adjustTo(state.adjust.usd - CONFIG.adjustStep); break;
       case 'adj-plus': adjustTo(state.adjust.usd + CONFIG.adjustStep); break;

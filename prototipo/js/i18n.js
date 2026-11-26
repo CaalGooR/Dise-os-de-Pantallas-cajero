@@ -29,11 +29,15 @@
       /* 2 · Inserta tus dólares */
       'insert.title': 'Inserta tus dólares',
       'insert.sub': 'Máximo <b>20</b> billetes por fajilla',
-      'insert.hint': '¿No quieres cambiar todo? En el siguiente paso podrás <b>elegir cuánto cambiar</b>.',
+      'insert.rulesTitle': 'Condiciones del billete',
+      'insert.rule1': 'En buen estado, sin roturas ni manchas',
+      'insert.rule2': 'Bien extendidos, sin dobleces ni cinta',
+      'insert.noteTitle': 'Nota',
+      'insert.note': 'Al presionar Siguiente podrás ajustar el monto si lo necesitas.',
       'insert.entered': 'Has ingresado',
       'insert.receive': 'Recibirás',
-      'insert.limit': 'Tope de {max} USD',
-      'insert.capReached': 'Llegaste al tope de {max} USD. Toca TERMINAR.',
+      'insert.limit': 'Máximo {max} USD',
+      'insert.capReached': 'Llegaste al tope de {max} USD. Toca SIGUIENTE.',
       'insert.locked': 'Receptor bloqueado',
       'insert.empty': 'Esperando tu fajilla',
       'insert.rateLine': 'Tipo de cambio',
@@ -42,9 +46,9 @@
       'reject.serial': 'Serie no aceptada. Retira ese billete e intenta con otro.',
       'reject.misplaced': 'Billete mal colocado. Insértalo con la cara hacia arriba.',
       'reject.cap': 'Ese billete supera el tope de {max} USD. Retíralo.',
-      'btn.finish': 'Terminar',
+      'btn.finish': 'Siguiente',
 
-      /* Validación (automática, entre Terminar y Confirmar) */
+      /* Validación (automática, entre Siguiente y Confirmar) */
       'validating.title': 'Validando inventario...',
       'validating.text': 'Un momento, por favor.',
 
@@ -144,11 +148,15 @@
 
       'insert.title': 'Insert your dollars',
       'insert.sub': 'Up to <b>20</b> bills per bundle',
-      'insert.hint': 'Don\'t want to exchange it all? In the next step you can <b>choose how much to exchange</b>.',
+      'insert.rulesTitle': 'Bill requirements',
+      'insert.rule1': 'Good condition, no tears or stains',
+      'insert.rule2': 'Flat, with no folds or tape',
+      'insert.noteTitle': 'Note',
+      'insert.note': 'When you press Next, you can adjust the amount if you need to.',
       'insert.entered': 'You have inserted',
       'insert.receive': 'You will receive',
       'insert.limit': '{max} USD limit',
-      'insert.capReached': 'You reached the {max} USD limit. Tap FINISH.',
+      'insert.capReached': 'You reached the {max} USD limit. Tap NEXT.',
       'insert.locked': 'Acceptor locked',
       'insert.empty': 'Waiting for your bundle',
       'insert.rateLine': 'Exchange rate',
@@ -157,7 +165,7 @@
       'reject.serial': 'Serial not accepted. Take that bill back and try another one.',
       'reject.misplaced': 'Bill inserted incorrectly. Insert it face up.',
       'reject.cap': 'That bill exceeds the {max} USD limit. Take it back.',
-      'btn.finish': 'Finish',
+      'btn.finish': 'Next',
 
       'validating.title': 'Checking inventory...',
       'validating.text': 'One moment, please.',

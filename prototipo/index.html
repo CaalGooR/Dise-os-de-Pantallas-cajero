@@ -54,6 +54,7 @@
     <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol>
     <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
     <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M1 14h6"/><path d="M9 8h6"/><path d="M17 16h6"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol>
     <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></symbol>
     <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
   </g>
@@ -152,8 +153,11 @@
           </header>
 
           <div class="langs" id="langGroup" role="group" aria-label="Idioma / Language">
-            <button class="lang" type="button" data-lang="es" aria-label="Español"><svg class="flag"><use href="#flag-mx"/></svg><span>ES</span></button>
-            <button class="lang" type="button" data-lang="en" aria-label="English"><svg class="flag"><use href="#flag-us"/></svg><span>EN</span></button>
+            <!-- Un solo botón: globo + idioma al que se cambia (SPA ⇄ ENG) -->
+            <button class="lang-btn" id="langToggle" type="button" data-action="lang-toggle" aria-label="Cambiar idioma / Change language">
+              <svg class="icon" aria-hidden="true"><use href="#i-globe"/></svg>
+              <span data-bind="lang.next"></span>
+            </button>
           </div>
 
           <div class="content">
@@ -194,27 +198,38 @@
               </div>
             </section>
 
-            <!-- ── 2 · Inserta tus dólares ── -->
+            <!-- ── 1 · Inserta tus dólares ── -->
             <section class="screen screen--insert" data-id="insert">
               <header class="ins__head">
-                <div>
-                  <h2 class="title" data-i18n="insert.title"></h2>
-                  <p class="sub" data-i18n="insert.sub"></p>
-                </div>
+                <h2 class="title" data-i18n="insert.title"></h2>
               </header>
 
-              <div class="figures">
-                <div class="fig">
-                  <span class="fig__lbl" data-i18n="insert.entered"></span>
-                  <span class="fig__val" data-bind="ins.entered"></span>
+              <div class="ins__body">
+                <div class="notice" data-bind="notice" hidden role="alert">
+                  <svg class="icon"><use href="#i-alert"/></svg>
+                  <span data-bind="notice.text"></span>
                 </div>
-                <span class="figures__arrow" aria-hidden="true"><svg class="icon"><use href="#i-arrow-right"/></svg></span>
-                <div class="fig fig--hero">
-                  <span class="fig__lbl" data-i18n="insert.receive"></span>
-                  <span class="fig__val" data-bind="ins.receive"></span>
+                <!-- Un solo contenedor: animación a la izquierda, condiciones del billete a la derecha -->
+                <div class="ins__clip">
+                  <div class="ins__art" aria-hidden="true">
+                    <video src="assets/video/cash-in.mp4" autoplay muted loop playsinline></video>
+                  </div>
+                  <div class="ins__rules">
+                    <p class="ins__rules-title" data-i18n="insert.rulesTitle"></p>
+                    <ul class="rules">
+                      <li class="rules__max"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="insert.sub"></span></li>
+                      <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="insert.rule1"></span></li>
+                      <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="insert.rule2"></span></li>
+                    </ul>
+                    <div class="ins__note">
+                      <p class="ins__note-title" data-i18n="insert.noteTitle"></p>
+                      <p class="ins__note-text" data-i18n="insert.note"></p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
+              <!-- Un solo contenedor: tipo de cambio + tope, barra de progreso y, debajo, los montos -->
               <div class="cap">
                 <div class="cap__row">
                   <span class="cap__rate" role="img" aria-label="1 USD = MXN">
@@ -225,28 +240,23 @@
                   <span class="cap__lbl" data-bind="ins.limit"></span>
                 </div>
                 <div class="cap__track"><span class="cap__fill" data-bind="ins.bar"></span></div>
+                <!-- Etiquetas a la izquierda, cifras pegadas a la derecha -->
+                <div class="figures">
+                  <div class="fig">
+                    <span class="fig__lbl" data-i18n="insert.entered"></span>
+                    <span class="fig__val" data-bind="ins.entered"></span>
+                  </div>
+                  <div class="fig fig--hero">
+                    <span class="fig__lbl" data-i18n="insert.receive"></span>
+                    <span class="fig__val" data-bind="ins.receive"></span>
+                  </div>
+                </div>
               </div>
 
               <p class="banner" data-bind="ins.banner" hidden></p>
-
-              <div class="ins__body">
-                <div class="notice" data-bind="notice" hidden role="alert">
-                  <svg class="icon"><use href="#i-alert"/></svg>
-                  <span data-bind="notice.text"></span>
-                </div>
-                <div class="ins__clip">
-                  <div class="ins__art" aria-hidden="true">
-                    <video src="assets/video/cash-in.mp4" autoplay muted loop playsinline></video>
-                  </div>
-                </div>
-                <p class="ins__hint">
-                  <svg class="icon" aria-hidden="true"><use href="#i-sliders"/></svg>
-                  <span data-i18n="insert.hint"></span>
-                </p>
-              </div>
             </section>
 
-            <!-- ── 3 · Confirmación ── -->
+            <!-- ── 2 · Confirmación ── -->
             <section class="screen screen--confirm" data-id="confirm">
               <header class="cf__head">
                 <h2 class="title" data-i18n="confirm.title"></h2>
@@ -255,12 +265,14 @@
               <div class="cf__body">
                 <div class="sum">
                   <div class="sum__row sum__row--main">
-                    <span class="sum__lbl" data-i18n="confirm.amount"></span>
-                    <!-- Ajustar monto: a la altura del monto, no escondido -->
-                    <button class="sum__adjust" type="button" data-action="adjust-open">
-                      <svg class="icon" aria-hidden="true"><use href="#i-sliders"/></svg>
-                      <span data-i18n="adjust.btn"></span>
-                    </button>
+                    <!-- Etiqueta y botón Ajustar apilados a la izquierda; el monto a la derecha, a su altura -->
+                    <div class="sum__side">
+                      <span class="sum__lbl" data-i18n="confirm.amount"></span>
+                      <button class="sum__adjust" type="button" data-action="adjust-open">
+                        <svg class="icon" aria-hidden="true"><use href="#i-sliders"/></svg>
+                        <span data-i18n="adjust.btn"></span>
+                      </button>
+                    </div>
                     <span class="sum__val" data-bind="cf.usd"></span>
                   </div>
                   <div class="sum__row sum__row--received">
@@ -285,12 +297,12 @@
               </div>
             </section>
 
-            <!-- ── 4 · Entrega: billetes → monedas → ticket ── -->
+            <!-- ── 3 · Entrega: billetes → monedas → ticket ── -->
             <section class="screen screen--deliver" data-id="deliver">
               <header class="dv__head">
+                <h2 class="title" data-bind="dv.title"></h2>
                 <span class="spinner" data-bind="dv.spin"></span>
                 <span class="dv__ok" data-bind="dv.ok" hidden><svg class="icon"><use href="#i-check"/></svg></span>
-                <h2 class="title" data-bind="dv.title"></h2>
               </header>
 
               <div class="dv__body">

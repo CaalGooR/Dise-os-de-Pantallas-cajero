@@ -301,7 +301,9 @@
   height: var(--btn-h);
   font-size: calc(var(--px) * 44);
 }
-.lang {
+/* Selector de idioma: un solo botón (globo + idioma al que se cambia). Rectángulo redondeado con
+   contorno blanco, para que se lea como botón y no se confunda con la insignia cian "Sin comisión". */
+.lang-btn {
   appearance: none;
   flex: none;
   display: flex;
@@ -309,20 +311,22 @@
   justify-content: center;
   gap: calc(var(--px) * 12);
   height: var(--lang-h);
-  padding: 0 calc(var(--px) * 22);
-  border-radius: 999px;
-  border: calc(var(--px) * 2) solid var(--c-line);
-  background: var(--c-glass);
+  padding: 0 calc(var(--px) * 28) 0 calc(var(--px) * 22);
+  border-radius: var(--r-sm);
+  border: calc(var(--px) * 2.5) solid rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.08);
   color: #fff;
   font: inherit;
   font-size: var(--fs-sm);
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  touch-action: manipulation;
+  box-shadow: 0 calc(var(--px) * 4) calc(var(--px) * 14) rgba(10, 5, 70, 0.3);
+  transition: transform 0.12s, background 0.2s;
 }
-.lang.is-active { background: #fff; color: var(--c-indigo); border-color: #fff; }
-.lang.is-active .flag { box-shadow: none; }
+.lang-btn .icon { font-size: calc(var(--px) * 36); stroke-width: 2; }
+.lang-btn:active { transform: scale(0.96); background: rgba(255, 255, 255, 0.18); }
 /* --------------------------------------------------------------------------
    1 · Inicio: espera + tipo de cambio + idioma + privacidad
    Minimalista: sin tarjetas ni video. El tipo de cambio y la tabla son los
@@ -481,24 +485,8 @@
    -------------------------------------------------------------------------- */
 .screen--insert { gap: calc(var(--px) * 22); }
 /* Instrucción en una sola línea: título + límite por fajilla, alineados al centro */
-.ins__head { display: flex; justify-content: space-between; align-items: center; gap: calc(var(--px) * 24); }
-.ins__head > div { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--px) * 14) calc(var(--px) * 22); min-width: 0; }
+.ins__head { display: flex; justify-content: flex-start; align-items: center; gap: calc(var(--px) * 22); }
 .ins__head .title { font-size: calc(var(--px) * 50); font-weight: 700; letter-spacing: -0.01em; }
-/* Límite por fajilla: destacado como cápsula amarilla, con el número en negrita */
-.sub {
-  display: inline-flex;
-  align-items: center;
-  margin: 0;
-  padding: calc(var(--px) * 9) calc(var(--px) * 22);
-  border-radius: 999px;
-  background: rgba(255, 204, 46, 0.14);
-  border: calc(var(--px) * 2) solid rgba(255, 204, 46, 0.6);
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  color: #fff;
-}
-.sub b { font-size: 1.35em; font-weight: 800; color: #ffcc2e; margin: 0 0.12em; }
-
 .rate-pill {
   display: flex;
   flex-direction: column;
@@ -514,8 +502,9 @@
 .rate-pill__val { font-size: var(--fs-n-sm); font-weight: 800; line-height: 1.05; }
 .rate-pill__cur { font-size: var(--fs-xs); font-weight: 500; color: var(--c-text-soft); }
 
-.figures { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.25fr); align-items: center; gap: calc(var(--px) * 18); }
-.fig { display: flex; flex-direction: column; gap: calc(var(--px) * 8); min-width: 0; }
+.figures { display: grid; gap: calc(var(--px) * 12); }
+/* Fila de montos: etiqueta a la izquierda, cifra pegada a la derecha */
+.fig { display: flex; align-items: center; justify-content: space-between; gap: calc(var(--px) * 24); min-width: 0; }
 .fig__lbl { font-size: var(--fs-sm); font-weight: 500; color: var(--c-text-soft); }
 .fig__val { font-size: var(--fs-n-md); font-weight: 800; white-space: nowrap; line-height: 1; }
 .fig__val .money { font-size: var(--fs-n-md); }
@@ -523,10 +512,8 @@
 .fig--hero .fig__val .money__cur { color: var(--c-cyan); opacity: 0.85; }
 .fig--hero .fig__lbl { color: #fff; }
 /* Contador de Ingresado / Recibirás: más compacto; la animación y la instrucción son lo importante */
-.screen--insert .fig__val, .screen--insert .fig__val .money { font-size: calc(var(--px) * 52); }
-.screen--insert .fig--hero .fig__val, .screen--insert .fig--hero .fig__val .money { font-size: calc(var(--px) * 72); }
-.figures__arrow { color: var(--c-text-soft); font-size: calc(var(--px) * 56); }
-.figures__arrow .icon { stroke-width: 2; }
+.screen--insert .fig__val, .screen--insert .fig__val .money { font-size: calc(var(--px) * 46); }
+.screen--insert .fig--hero .fig__val, .screen--insert .fig--hero .fig__val .money { font-size: calc(var(--px) * 66); }
 
 /* Barra de progreso integrada: tipo de cambio a la izquierda, tope a la derecha y la barra debajo,
    todo en una sola tarjeta compacta (sustituye a la cápsula de tipo de cambio de la esquina). */
@@ -544,8 +531,27 @@
 .cap__rate .flag { width: calc(var(--px) * 38); height: calc(var(--px) * 27); box-shadow: 0 0 0 calc(var(--px) * 2) rgba(255, 255, 255, 0.25); }
 .cap__eq { color: var(--c-cyan); font-weight: 700; padding: 0 calc(var(--px) * 4); }
 .cap__track { height: calc(var(--px) * 12); border-radius: 999px; background: rgba(255, 255, 255, 0.14); overflow: hidden; }
-.cap__fill { display: block; height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, #0fb8c4, var(--c-cyan) 60%, #7ff4f9); transition: width 0.4s ease; }
+.cap__fill { display: block; height: 100%; width: 0; border-radius: 999px; background: var(--c-indigo); transition: width 0.4s ease; }
 .cap__lbl { font-size: var(--fs-sm); font-weight: 500; color: var(--c-text-soft); }
+/* Montos dentro de la misma tarjeta, por debajo de la barra de progreso */
+.cap .figures { margin-top: calc(var(--px) * 6); padding-top: calc(var(--px) * 18); border-top: calc(var(--px) * 1.5) solid rgba(255, 255, 255, 0.12); }
+/* Tarjeta de la barra de progreso en blanco: textos, pista y separador pasan a tinta oscura */
+.cap {
+  background: #fff;
+  border: calc(var(--px) * 1.5) solid #fff;
+  box-shadow: 0 calc(var(--px) * 30) calc(var(--px) * 70) rgba(10, 5, 70, 0.35);
+}
+/* Sistema de textos de la tarjeta (solo dos roles):
+     · etiquetas, unidades y texto de apoyo → --c-muted
+     · valores y cifras                       → --c-ink
+   La barra de progreso es de color plano (--c-indigo), sin degradado. */
+.cap__rate, .cap__lbl, .cap__eq, .cap .fig__lbl, .cap .fig--hero .fig__lbl,
+.cap .money__cur, .cap .money__sym, .cap .fig--hero .fig__val .money__cur { color: var(--c-muted); opacity: 1; }
+.cap__rate b, .cap .fig__val, .cap .fig--hero .fig__val, .cap .fig--hero .fig__val .money,
+.cap .fig__val .money { color: var(--c-ink); }
+.cap__rate .flag { box-shadow: 0 0 0 calc(var(--px) * 2) rgba(51, 43, 167, 0.18); }
+.cap__track { background: rgba(12, 6, 70, 0.1); }
+.cap .figures { border-top-color: rgba(12, 6, 70, 0.12); }
 
 .banner {
   margin: 0;
@@ -565,34 +571,41 @@
   flex: 1 1 auto;
   min-height: 0;
   display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
   grid-template-rows: minmax(0, 1fr);
-  justify-items: center;
-  padding: calc(var(--px) * 26) calc(var(--px) * 28);
+  align-items: center;
+  column-gap: calc(var(--px) * 40);
+  padding: calc(var(--px) * 26) calc(var(--px) * 36);
   overflow: hidden;
   border-radius: var(--r);
   background:
     radial-gradient(70% 90% at 50% 40%, rgba(255, 255, 255, 0.07), transparent 70%),
     rgba(12, 6, 70, 0.30);
 }
-.ins__art { position: relative; min-height: 0; height: 100%; aspect-ratio: 1 / 1; max-width: 100%; border-radius: calc(var(--px) * 20); overflow: hidden; transition: filter 0.3s; }
+.ins__art { position: relative; min-height: 0; height: 100%; aspect-ratio: 1 / 1; max-width: 100%; justify-self: center; border-radius: calc(var(--px) * 20); overflow: hidden; transition: filter 0.3s; }
 .ins__art video { display: block; width: 100%; height: 100%; object-fit: cover; }
 
-/* Aviso discreto bajo la animación: no hace falta cambiar todo, el monto se ajusta en el siguiente paso */
-.ins__hint {
-  flex: none;
-  display: flex;
+/* Condiciones del billete: lista con palomitas; el máximo por fajilla va destacado en amarillo */
+.ins__rules { min-width: 0; display: grid; gap: calc(var(--px) * 16); align-content: center; }
+.ins__rules-title { margin: 0; font-size: var(--fs-xs); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--c-text-soft); }
+.rules { list-style: none; margin: 0; padding: 0; display: grid; gap: calc(var(--px) * 14); }
+.rules li { display: flex; align-items: flex-start; gap: calc(var(--px) * 16); font-size: var(--fs-sm); font-weight: 400; line-height: 1.25; color: #fff; }
+.rules .icon { flex: none; font-size: calc(var(--px) * 34); color: var(--c-cyan); stroke-width: 3; }
+.rules__max {
   align-items: center;
-  justify-content: center;
-  gap: calc(var(--px) * 14);
-  margin: calc(var(--px) * 16) 0 0;
-  font-size: var(--fs-xs);
-  font-weight: 400;
-  line-height: 1.3;
-  text-align: center;
-  color: var(--c-text-soft);
+  padding: calc(var(--px) * 14) calc(var(--px) * 22);
+  border-radius: var(--r-sm);
+  background: rgba(255, 204, 46, 0.14);
+  border: calc(var(--px) * 2) solid rgba(255, 204, 46, 0.6);
+  font-weight: 500;
 }
-.ins__hint .icon { flex: none; font-size: calc(var(--px) * 34); color: var(--c-cyan); }
-.ins__hint b { font-weight: 700; color: #fff; }
+.rules__max .icon { color: #ffcc2e; }
+.rules__max b { font-size: 1.35em; font-weight: 800; color: #ffcc2e; margin: 0 0.12em; }
+
+/* Nota dentro de la misma tarjeta: subtítulo tipo etiqueta y texto corto debajo */
+.ins__note { display: grid; gap: calc(var(--px) * 6); padding-top: calc(var(--px) * 16); border-top: calc(var(--px) * 1.5) solid rgba(255, 255, 255, 0.14); }
+.ins__note-title { margin: 0; font-size: var(--fs-xs); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--c-cyan); }
+.ins__note-text { margin: 0; font-size: var(--fs-sm); font-weight: 400; line-height: 1.3; color: var(--c-text-soft); }
 
 .notice {
   position: absolute;
@@ -623,7 +636,7 @@
    3 · Confirmación
    -------------------------------------------------------------------------- */
 .screen--confirm { gap: calc(var(--px) * 22); }
-.cf__head { display: flex; align-items: center; }
+.cf__head { display: flex; align-items: center; gap: calc(var(--px) * 22); }
 .cf__head .title { font-size: calc(var(--px) * 50); font-weight: 700; letter-spacing: -0.01em; }
 /* Resumen centrado verticalmente en el espacio que deja la instrucción */
 .cf__body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; justify-content: center; gap: calc(var(--px) * 24); }
@@ -647,7 +660,8 @@
 .sum__row--change.is-zero .sum__lbl, .sum__row--change.is-zero .sum__val { opacity: 0.45; }
 .sum__row--change.is-zero .sum__val { color: #fff; }
 .sum__row--main { padding: calc(var(--px) * 26) 0; }
-.sum__row--main .sum__lbl { color: #fff; font-weight: 700; }
+.sum__row--main .sum__lbl { flex: none; color: #fff; font-weight: 700; }
+.sum__side { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: calc(var(--px) * 14); }
 .sum__row--main .sum__val .money { font-size: var(--fs-n-md); }
 .sum__adjust {
   appearance: none; border: 0; margin: 0; cursor: pointer; touch-action: manipulation; font: inherit;
@@ -767,6 +781,7 @@
 .screen--deliver { gap: calc(var(--px) * 22); }
 /* Instrucción arriba a la izquierda (igual que Inserta y Confirma); el estado va junto al título */
 .dv__head { display: flex; align-items: center; justify-content: flex-start; gap: calc(var(--px) * 22); min-height: calc(var(--px) * 72); }
+.dv__head .spinner, .dv__head .dv__ok { margin-left: auto; }
 .dv__head .title { font-size: calc(var(--px) * 50); font-weight: 700; letter-spacing: -0.01em; }
 .dv__ok {
   width: calc(var(--px) * 64);
@@ -995,14 +1010,12 @@
   .screen--start .privacy__line { font-size: calc(var(--px) * 34); line-height: 1.35; }
   .screen--start .privacy__more { font-size: calc(var(--px) * 28); }
   /* Pie de inicio: Español | Aceptar y comenzar | English en una sola fila a sangre */
-  .lang { height: var(--lang-h); padding: 0 calc(var(--px) * 30); gap: calc(var(--px) * 14); font-size: calc(var(--px) * 38); }
-  .lang .flag { width: calc(var(--px) * 52); height: calc(var(--px) * 36); }
+  .lang-btn { font-size: calc(var(--px) * 38); padding: 0 calc(var(--px) * 36) 0 calc(var(--px) * 30); gap: calc(var(--px) * 16); }
+  .lang-btn .icon { font-size: calc(var(--px) * 50); }
 
   .ins__head .title { font-size: calc(var(--px) * 84); }
-  .ins__head .sub { font-size: calc(var(--px) * 40); }
-  /* Montos en una fila para dejar altura a la animación y a la lista */
-  .figures { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.25fr); gap: calc(var(--px) * 14); align-items: center; }
-  .figures__arrow { transform: none; font-size: calc(var(--px) * 44); }
+  .ins__head, .cf__head, .dv__head { gap: calc(var(--px) * 30); }
+  .figures { gap: calc(var(--px) * 18); }
   .fig__val, .fig__val .money { font-size: calc(var(--px) * 52); }
   .fig--hero .fig__val, .fig--hero .fig__val .money { font-size: calc(var(--px) * 60); }
   .screen--insert .fig__val, .screen--insert .fig__val .money { font-size: calc(var(--px) * 60); }
@@ -1015,10 +1028,27 @@
   .cap__rate .flag { width: calc(var(--px) * 58); height: calc(var(--px) * 40); }
   .cap__lbl { font-size: calc(var(--px) * 40); }
   .banner { font-size: var(--fs-md); }
-  /* La animación es la protagonista: video grande y centrado, aviso debajo */
-  .ins__clip { padding: calc(var(--px) * 40) calc(var(--px) * 48); }
-  /* Vertical: el video ocupa todo el ancho útil y queda centrado verticalmente en su contenedor */
-  .ins__art { width: 100%; height: auto; align-self: center; }
+  /* Animación arriba y centrada; las condiciones y la nota van abajo.
+     La animación ocupa el espacio sobrante (fila 1fr) y el texto solo lo que necesita (fila auto). */
+  .ins__clip {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    row-gap: calc(var(--px) * 24);
+    column-gap: 0;
+    padding: calc(var(--px) * 28) calc(var(--px) * 40);
+  }
+  .ins__art { grid-row: 1; }
+  .ins__rules { grid-row: 2; gap: calc(var(--px) * 14); }
+  .rules { gap: calc(var(--px) * 12); }
+  .rules li { font-size: var(--fs-sm); gap: calc(var(--px) * 16); }
+  .rules .icon { font-size: calc(var(--px) * 36); }
+  .rules__max { padding: calc(var(--px) * 14) calc(var(--px) * 22); }
+  .ins__note { gap: calc(var(--px) * 4); padding-top: calc(var(--px) * 12); }
+  /* La nota en una sola línea: tamaño ajustado para que quepa en el ancho de la tarjeta */
+  .ins__note-text { font-size: calc(var(--px) * 28); white-space: nowrap; }
+  .cap .figures { margin-top: calc(var(--px) * 10); padding-top: calc(var(--px) * 30); }
+  /* Vertical: el video ocupa el alto de su fila (cuadrado) y queda centrado en ella */
+  .ins__art { width: auto; height: 100%; aspect-ratio: 1 / 1; max-width: 100%; align-self: center; justify-self: center; }
   .notice { font-size: var(--fs-md); }
 
   .screen--confirm { gap: calc(var(--px) * 36); }
@@ -1027,6 +1057,7 @@
   .sum { padding: 0 calc(var(--px) * 40); }
   .sum__row { padding: calc(var(--px) * 34) 0; gap: calc(var(--px) * 24); }
   .sum__row--main { padding: calc(var(--px) * 40) 0; }
+  .sum__side { gap: calc(var(--px) * 22); }
   .sum__row--main .sum__val .money { font-size: calc(var(--px) * 76); }
   .sum__adjust { height: calc(var(--px) * 108); padding: 0 calc(var(--px) * 40) 0 calc(var(--px) * 34); gap: calc(var(--px) * 16); }
   .sum__adjust .icon { font-size: calc(var(--px) * 52); }
